@@ -71,6 +71,7 @@ kotlin {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-extensions:1.0.1-pre.216-kotlin-1.5.20")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-styled:5.3.0-pre.216-kotlin-1.5.20")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-ring-ui:4.0.21-pre.216-kotlin-1.5.20")
+                implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom:5.2.0-pre.216-kotlin-1.5.20")
             }
         }
         val jsTest by getting {
