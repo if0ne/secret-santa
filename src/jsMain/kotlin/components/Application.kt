@@ -1,12 +1,9 @@
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.id
-import kotlinx.html.style
+package components
+
 import react.RBuilder
 import react.RComponent
 import react.RProps
 import react.RState
-import react.dom.*
 import styled.css
 import styled.styledDiv
 
