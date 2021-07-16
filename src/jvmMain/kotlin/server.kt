@@ -12,15 +12,14 @@ import kotlinx.html.*
 fun HTML.index() {
     head {
         title("Hello from Ktor!")
+        link("https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css", "stylesheet", null) {}
     }
     body {
-        div {
-            +"Hello from Ktor"
-        }
         div {
             id = "root"
         }
         script(src = "/static/output.js") {}
+        script(src = "https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js") {}
     }
 }
 
