@@ -1,4 +1,5 @@
 CREATE EXTENSION citext;
+CREATE TYPE session_state AS ENUM('none', 'lobby', 'game', 'finish');
 CREATE TABLE users(
     id serial PRIMARY KEY,
     nickname varchar(30) NOT NULL UNIQUE,
@@ -7,14 +8,17 @@ CREATE TABLE users(
     first_name text NOT NULL,
     last_name text NOT NULL,
     middle_name text,
-    avatar text
+    avatar_url text
 );
 
 CREATE TABLE sessions(
     id serial PRIMARY KEY,
     guid uuid,
+    current_state session_state NOT NULL DEFAULT('none'),
+    description text,
     host_id integer NOT NULL,
     players_quantity integer NOT NULL CHECK (players_quantity > 2),
+    event_time timestamp  NOT NULL,
     date_time_to_choose timestamp  NOT NULL
 );
 
