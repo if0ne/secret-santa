@@ -11,6 +11,10 @@ import org.kodein.di.bind
 import org.kodein.di.ktor.di
 import org.kodein.di.singleton
 import ru.tinkoff.santa.rest.plugin.configureSerialization
+import ru.tinkoff.santa.rest.session.sessionComponents
+import ru.tinkoff.santa.rest.session.sessionModule
+import ru.tinkoff.santa.rest.user.userComponents
+import ru.tinkoff.santa.rest.user.userModule
 
 fun main() {
     val config = ConfigFactory.load().extract<AppConfig>()
@@ -18,8 +22,12 @@ fun main() {
     val engine = embeddedServer(Netty, port = config.httpConfig.port) {
         di {
             coreComponents(config)
+            sessionComponents()
+            userComponents()
         }
         configureSerialization()
+        sessionModule()
+        userModule()
     }
     engine.start()
 }
