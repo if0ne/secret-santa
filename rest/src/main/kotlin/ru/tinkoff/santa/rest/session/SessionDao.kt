@@ -1,6 +1,7 @@
 package ru.tinkoff.santa.rest.session
 
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.Timestamp
 import java.util.*
@@ -30,18 +31,23 @@ class SessionDao(private val database: Database) {
         currentState: SessionState,
         description: String?,
         hostId: Int,
+        budget: Int,
         minPlayersQuantity: Int,
         eventTimestamp: Timestamp,
         timestampToChoose: Timestamp
     ) = transaction(database) {
         Sessions.insert {
             it[guid] = UUID.randomUUID()
-            it[Sessions.currentState] = currentState
-            it[Sessions.description] = description
-            it[Sessions.hostId] = hostId
-            it[Sessions.minPlayersQuantity] = minPlayersQuantity
-            it[Sessions.eventTimestamp] = eventTimestamp.toInstant()
-            it[Sessions.timestampToChoose] = timestampToChoose.toInstant()
+            wrapSessionToUpdateBuilder(
+                it,
+                currentState,
+                description,
+                hostId,
+                budget,
+                minPlayersQuantity,
+                eventTimestamp,
+                timestampToChoose
+            )
         }
     }
 
@@ -50,17 +56,22 @@ class SessionDao(private val database: Database) {
         currentState: SessionState,
         description: String?,
         hostId: Int,
+        budget: Int,
         minPlayersQuantity: Int,
         eventTimestamp: Timestamp,
         timestampToChoose: Timestamp
     ) = transaction(database) {
         Sessions.update({ Sessions.id eq id }) {
-            it[Sessions.currentState] = currentState
-            it[Sessions.description] = description
-            it[Sessions.hostId] = hostId
-            it[Sessions.minPlayersQuantity] = minPlayersQuantity
-            it[Sessions.eventTimestamp] = eventTimestamp.toInstant()
-            it[Sessions.timestampToChoose] = timestampToChoose.toInstant()
+            wrapSessionToUpdateBuilder(
+                it,
+                currentState,
+                description,
+                hostId,
+                budget,
+                minPlayersQuantity,
+                eventTimestamp,
+                timestampToChoose
+            )
         }
     }
 
@@ -71,6 +82,25 @@ class SessionDao(private val database: Database) {
     }
 }
 
+private fun wrapSessionToUpdateBuilder(
+    updateBuilder: UpdateBuilder<Number>,
+    currentState: SessionState,
+    description: String?,
+    hostId: Int,
+    budget: Int,
+    minPlayersQuantity: Int,
+    eventTimestamp: Timestamp,
+    timestampToChoose: Timestamp
+) {
+    updateBuilder[Sessions.currentState] = currentState
+    updateBuilder[Sessions.description] = description
+    updateBuilder[Sessions.hostId] = hostId
+    updateBuilder[Sessions.budget] = budget
+    updateBuilder[Sessions.minPlayersQuantity] = minPlayersQuantity
+    updateBuilder[Sessions.eventTimestamp] = eventTimestamp.toInstant()
+    updateBuilder[Sessions.timestampToChoose] = timestampToChoose.toInstant()
+}
+
 private fun extractSession(row: ResultRow): Session =
     Session(
         row[Sessions.id].value,
@@ -78,6 +108,7 @@ private fun extractSession(row: ResultRow): Session =
         row[Sessions.currentState],
         row[Sessions.description],
         row[Sessions.hostId],
+        row[Sessions.budget],
         row[Sessions.minPlayersQuantity],
         Timestamp.from(row[Sessions.eventTimestamp]),
         Timestamp.from(row[Sessions.timestampToChoose])

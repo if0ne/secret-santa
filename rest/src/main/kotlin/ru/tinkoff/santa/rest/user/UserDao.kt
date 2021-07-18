@@ -1,11 +1,8 @@
 package ru.tinkoff.santa.rest.user
 
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.statements.InsertStatement
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
-import org.jetbrains.exposed.sql.statements.UpdateStatement
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.util.*
 
 class UserDao(private val database: Database) {
     fun getAll(): List<User> = transaction(database) {

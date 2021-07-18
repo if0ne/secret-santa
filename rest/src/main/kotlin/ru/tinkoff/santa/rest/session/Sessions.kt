@@ -4,15 +4,16 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.`java-time`.timestamp
 
 object Sessions : IntIdTable() {
-    var guid = uuid("guid")
-    var currentState = customEnumeration(
+    val guid = uuid("guid")
+    val currentState = customEnumeration(
         "current_state",
         "session_state",
         { value -> SessionState.valueOf(value as String) },
         { PostgresCustomEnum("session_state", it) })
-    var description = text("description").nullable()
-    var hostId = integer("host_id")
-    var minPlayersQuantity = integer("min_players_quantity")
-    var eventTimestamp = timestamp("event_timestamp")
-    var timestampToChoose = timestamp("timestamp_to_choose")
+    val description = text("description").nullable()
+    val hostId = integer("host_id")
+    val budget = integer("budget")
+    val minPlayersQuantity = integer("min_players_quantity")
+    val eventTimestamp = timestamp("event_timestamp")
+    val timestampToChoose = timestamp("timestamp_to_choose")
 }

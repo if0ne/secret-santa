@@ -21,6 +21,7 @@ CREATE TABLE sessions
     current_state        session_state NOT NULL DEFAULT ('NONE'),
     description          text,
     host_id              integer       NOT NULL,
+    budget               integer       NOT NULL,
     min_players_quantity integer       NOT NULL CHECK (min_players_quantity > 2),
     event_timestamp      timestamp     NOT NULL,
     timestamp_to_choose  timestamp     NOT NULL

@@ -16,20 +16,39 @@ class SessionService(private val sessionDao: SessionDao) {
         currentState: SessionState,
         description: String?,
         hostId: Int,
+        budget: Int,
         eventTimestamp: Timestamp,
         timestampToChoose: Timestamp,
         minPlayersQuantity: Int = 3,
-    ) = sessionDao.create(currentState, description, hostId, minPlayersQuantity, eventTimestamp, timestampToChoose)
+    ) = sessionDao.create(
+        currentState,
+        description,
+        hostId,
+        budget,
+        minPlayersQuantity,
+        eventTimestamp,
+        timestampToChoose
+    )
 
     fun update(
         id: Int,
         currentState: SessionState,
         description: String?,
         hostId: Int,
+        budget: Int,
         minPlayersQuantity: Int,
         eventTimestamp: Timestamp,
         timestampToChoose: Timestamp
-    ) = sessionDao.update(id, currentState, description, hostId, minPlayersQuantity, eventTimestamp, timestampToChoose)
+    ) = sessionDao.update(
+        id,
+        currentState,
+        description,
+        hostId,
+        budget,
+        minPlayersQuantity,
+        eventTimestamp,
+        timestampToChoose
+    )
 
     fun delete(id: Int) = sessionDao.delete(id)
 }

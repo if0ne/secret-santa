@@ -9,6 +9,7 @@ data class Session(
     val currentState: SessionState,
     val description: String?,
     val hostId: Int,
+    val budget: Int,
     val minPlayersQuantity: Int,
     val eventTimestamp: Timestamp,
     val timestampToChoose: Timestamp

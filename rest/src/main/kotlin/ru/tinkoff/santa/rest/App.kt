@@ -10,6 +10,8 @@ import org.kodein.di.DI
 import org.kodein.di.bind
 import org.kodein.di.ktor.di
 import org.kodein.di.singleton
+import ru.tinkoff.santa.rest.gift.giftComponents
+import ru.tinkoff.santa.rest.gift.giftModule
 import ru.tinkoff.santa.rest.plugin.configureSerialization
 import ru.tinkoff.santa.rest.session.sessionComponents
 import ru.tinkoff.santa.rest.session.sessionModule
@@ -24,10 +26,12 @@ fun main() {
             coreComponents(config)
             sessionComponents()
             userComponents()
+            giftComponents()
         }
         configureSerialization()
         sessionModule()
         userModule()
+        giftModule()
     }
     engine.start()
 }
