@@ -25,15 +25,22 @@ class Button: RComponent<ButtonProps, RState>() {
 
     override fun RBuilder.render() {
         styledButton() {
+
             css {
                 display = Display.inlineBlock
                 backgroundColor = Color(props.color.hex)
+
                 textAlign = TextAlign.center
                 verticalAlign = VerticalAlign.middle
+
                 border = "0"
                 borderRadius = LinearDimension("25px")
+
                 color = Color.white
-                fontSize = LinearDimension("18pt")
+                fontSize = LinearDimension("1rem")
+                fontFamily = "'Roboto', sans-serif"
+
+                padding((0.375).rem, (0.75).rem)
             }
             css.hover {
                 backgroundColor = Color("#833C2C")
@@ -45,6 +52,7 @@ class Button: RComponent<ButtonProps, RState>() {
             }
 
             +props.text
+            children()
         }
     }
 }

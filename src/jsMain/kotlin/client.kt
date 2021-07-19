@@ -1,5 +1,5 @@
 import components.Application
-import components.Login
+
 import react.dom.render
 import kotlinx.browser.document
 import kotlinx.browser.window
@@ -7,7 +7,7 @@ import kotlinx.browser.window
 fun main() {
     window.onload = {
         render(document.getElementById("root")) {
-            child(Login::class) {}
+            child(Application::class) {}
         }
     }
 }

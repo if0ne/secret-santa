@@ -1,77 +1,98 @@
 package components
 
-import kotlinx.html.ButtonType
-import kotlinx.html.InputType
-import kotlinx.html.classes
+import components.basic.ButtonColor
+import components.basic.santaButton
+import kotlinx.css.*
+import kotlinx.css.properties.TextDecoration
+import kotlinx.css.properties.Transitions
+import kotlinx.css.properties.s
+import kotlinx.css.properties.transition
+
 import react.RBuilder
 import react.RComponent
 import react.RProps
 import react.RState
 import react.dom.*
+import react.router.dom.browserRouter
+import react.router.dom.navLink
+import react.router.dom.route
+
+import react.router.dom.switch
+
 import styled.css
+import styled.styledA
 import styled.styledDiv
+import styled.styledNav
 
 @JsExport
 class Application : RComponent<RProps,RState>() {
 
+    private fun RBuilder.link(href: String, text: String) {
+        styledA(href = href) {
+            css {
+                classes = mutableListOf("nav-link")
+                +ComponentStyles.navbarLink
+            }
+            +text
+        }
+    }
+
     private fun RBuilder.navbar() {
-        nav(classes = "navbar navbar-expand-lg navbar-dark bg-dark"){
+        styledNav {
+            css {
+                classes = mutableListOf("navbar", "navbar-expand-lg")
+                backgroundColor = Color("#A6974B")
+                color = Color.white
+            }
+
             div(classes = "container"){
-                a(href = "#", classes = "navbar-brand"){
-                    +"Santa"
+                styledA(href = "#") {
+                    css {
+                        classes = mutableListOf("navbar-bra nd")
+                        color = Color.white
+                        fontWeight = FontWeight.bold
+                        textDecoration = TextDecoration.none
+                    }
+
+                    css.hover {
+                        color = Color("#322C40")
+                    }
+
+                    +"Тайный Санта"
                 }
-                button(classes = "navbar-toggler", type = ButtonType.button){
-                    attrs {
-                        attributes["data-toggle"] = "collapse"
-                        attributes["data-target"] = "#myNavbar"
-                        attributes["aria-controls"] = "navbarContent"
-                        attributes["aria-expanded"] = "false"
+                ul(classes = "navbar-nav ms-md-auto") {
+                    li(classes = "nav-item"){
+                        link("#", "Войти")
                     }
-                    span(classes = "navbar-toggler-icon"){}
+                    li(classes = "nav-item"){
+                        link("#", "Правила")
+                    }
                 }
-                div(classes = "collapse navbar-collapse"){
-                    attrs{
-                        attributes["id"] = "myNavbar"
-                    }
-                    ul(classes = "navbar-nav mr-auto mb-2") {
-                        li(classes = "nav-item"){
-                            a(classes = "nav-link"){
-                                +"first"
-                            }
-                        }
-                        li(classes = "nav-item"){
-                            a(classes = "nav-link"){
-                                +"two"
-                            }
-                        }
-                        li(classes = "nav-item"){
-                            a(classes = "nav-link"){
-                                +"three"
-                            }
-                        }
-                        li(classes = "nav-item"){
-                            a(classes = "nav-link"){
-                                +"four"
-                            }
-                        }
-                    }
+
+                santaButton() {
+                    text = "Создать"
+                    disabled = false
+                    color = ButtonColor.ORANGE
                 }
             }
         }
     }
 
     override fun RBuilder.render() {
-        navbar()
+
         styledDiv {
             css {
-                classes = mutableListOf("alert alert-warning text-center")
+                margin(0.px)
+                padding(0.px)
+                fontFamily = "'Roboto', sans-serif"
             }
-            div {
-                +"main"
+
+            navbar()
+            styledDiv {
+                css {
+                    classes = mutableListOf("container px-4 px-md-3")
+                }
             }
-        }
-        h1 {
-            +"bottom"
         }
 
     }
