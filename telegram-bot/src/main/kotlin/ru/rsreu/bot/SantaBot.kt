@@ -20,20 +20,42 @@ class SantaBot(config: TelegramConfig) {
         }
         dispatch {
             command("start") {
-                bot.sendMsg(message.chat.id, text = "hello", buttons.getButtons(ButtonsType.START_BUTTONS))
+                bot.sendMsg(
+                    chatId = message.chat.id,
+                    text = "Добро пожаловать в Тайного Санту",
+                    buttons = buttons.getButtons(ButtonsType.START_BUTTONS)
+                )
+
             }
 
-            callbackQuery("create") {
+            callbackQuery("register") {
+                val guid = getGUID()
+
                 bot.deleteLastMessage(callbackQuery)
+                bot.sendMsg(
+                    chatId = callbackQuery.from.id,
+                    text = "Вы успешно зарегистрировались, ваш GUID:"
+                )
+                bot.sendMsg(
+                    chatId = callbackQuery.from.id,
+                    text = guid
+                )
+                bot.sendMsg(
+                    chatId = callbackQuery.from.id,
+                    text = "Укажите его в своем личном кабинете, чтобы привязать аккаунт ... . Возможности бота:",
+                    buttons = buttons.getButtons(ButtonsType.FUNCTIONAL_BUTTONS)
+                )
             }
 
-            callbackQuery("join") {
-                bot.sendMsg(callbackQuery.from.id, "AGAG")
-            }
+            callbackQuery("create") { }
+
+            callbackQuery("lobbies") { }
         }
     }
 
     fun start() = telegramBot.startWebhook()
 
     fun processUpdate(receiveBody: String) = telegramBot.processUpdate(receiveBody)
+
+    private fun getGUID() = "{6F9619FF-8B86-D011-B42D-00CF4FC964FF}"
 }
