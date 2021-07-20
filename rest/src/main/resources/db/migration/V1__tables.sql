@@ -1,17 +1,19 @@
-CREATE EXTENSION citext;
+CREATE
+EXTENSION citext;
 CREATE TYPE session_state AS ENUM('NONE', 'LOBBY', 'GAME', 'FINISH');
 
 CREATE TABLE users
 (
-    id          serial PRIMARY KEY,
-    nickname    varchar(30)         NOT NULL UNIQUE,
-    email       varchar(254) UNIQUE NOT NULL,
-    password    bytea               NOT NULL,
-    first_name  text                NOT NULL,
-    last_name   text                NOT NULL,
-    middle_name text,
-    avatar_url  text,
-    telegram_id bigint unique
+    id            serial PRIMARY KEY,
+    telegram_guid uuid,
+    nickname      varchar(30)         NOT NULL UNIQUE,
+    email         varchar(254) UNIQUE NOT NULL,
+    password      bytea               NOT NULL,
+    first_name    text                NOT NULL,
+    last_name     text                NOT NULL,
+    middle_name   text,
+    avatar_url    text,
+    telegram_id   bigint unique
 );
 
 CREATE TABLE sessions

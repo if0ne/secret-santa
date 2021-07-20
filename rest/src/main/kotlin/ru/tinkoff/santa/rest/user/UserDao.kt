@@ -3,6 +3,7 @@ package ru.tinkoff.santa.rest.user
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.*
 
 class UserDao(private val database: Database) {
     fun getAll(): List<User> = transaction(database) {
@@ -12,6 +13,12 @@ class UserDao(private val database: Database) {
     fun getById(id: Int): User? = transaction(database) {
         runCatching {
             extractUser(Users.select { Users.id eq id }.first())
+        }.getOrNull()
+    }
+
+    fun getByTelegramGuid(telegramGuid: UUID): User? = transaction(database) {
+        runCatching {
+            extractUser(Users.select { Users.telegramGuid eq telegramGuid }.first())
         }.getOrNull()
     }
 
@@ -34,6 +41,7 @@ class UserDao(private val database: Database) {
     }
 
     fun create(
+        telegramGuid: UUID?,
         nickname: String,
         email: String,
         password: ByteArray,
@@ -46,6 +54,7 @@ class UserDao(private val database: Database) {
         Users.insert {
             wrapUserToUpdateBuilder(
                 it,
+                telegramGuid,
                 nickname,
                 email,
                 password,
@@ -60,6 +69,7 @@ class UserDao(private val database: Database) {
 
     fun update(
         id: Int,
+        telegramGuid: UUID?,
         nickname: String,
         email: String,
         password: ByteArray,
@@ -72,6 +82,7 @@ class UserDao(private val database: Database) {
         Users.update({ Users.id eq id }) {
             wrapUserToUpdateBuilder(
                 it,
+                telegramGuid,
                 nickname,
                 email,
                 password,
@@ -91,6 +102,7 @@ class UserDao(private val database: Database) {
 
 private fun wrapUserToUpdateBuilder(
     updateBuilder: UpdateBuilder<Number>,
+    telegramGuid: UUID?,
     nickname: String,
     email: String,
     password: ByteArray,
@@ -100,6 +112,7 @@ private fun wrapUserToUpdateBuilder(
     avatarUrl: String?,
     telegramId: Long?
 ) {
+    updateBuilder[Users.telegramGuid] = telegramGuid
     updateBuilder[Users.nickname] = nickname
     updateBuilder[Users.email] = email
     updateBuilder[Users.password] = password
@@ -112,6 +125,7 @@ private fun wrapUserToUpdateBuilder(
 
 private fun extractUser(row: ResultRow) = User(
     row[Users.id].value,
+    row[Users.telegramGuid],
     row[Users.nickname],
     row[Users.email],
     row[Users.password],

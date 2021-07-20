@@ -1,9 +1,13 @@
 package ru.tinkoff.santa.rest.user
 
+import java.util.*
+
 class UserService(private val userDao: UserDao) {
     fun getAll(): List<User> = userDao.getAll()
 
     fun getById(id: Int): User? = userDao.getById(id)
+
+    fun getByTelegramGuid(telegramGuid: UUID): User? = userDao.getByTelegramGuid(telegramGuid)
 
     fun getByEmail(email: String): User? = userDao.getByEmail(email)
 
@@ -12,6 +16,7 @@ class UserService(private val userDao: UserDao) {
     fun getByTelegramId(telegramId: Long): User? = userDao.getByTelegramId(telegramId)
 
     fun create(
+        telegramGuid: UUID?,
         nickname: String,
         email: String,
         password: ByteArray,
@@ -21,6 +26,7 @@ class UserService(private val userDao: UserDao) {
         avatarUrl: String?,
         telegramId: Long?
     ) = userDao.create(
+        telegramGuid,
         nickname,
         email,
         password,
@@ -33,6 +39,7 @@ class UserService(private val userDao: UserDao) {
 
     fun update(
         id: Int,
+        telegramGuid: UUID?,
         nickname: String,
         email: String,
         password: ByteArray,
@@ -43,6 +50,7 @@ class UserService(private val userDao: UserDao) {
         telegramId: Long?
     ) = userDao.update(
         id,
+        telegramGuid,
         nickname,
         email,
         password,
