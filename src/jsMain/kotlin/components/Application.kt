@@ -4,36 +4,32 @@ import components.basic.ButtonColor
 import components.basic.santaButton
 import kotlinx.css.*
 import kotlinx.css.properties.TextDecoration
-import kotlinx.css.properties.Transitions
-import kotlinx.css.properties.s
-import kotlinx.css.properties.transition
 
 import react.RBuilder
 import react.RComponent
 import react.RProps
 import react.RState
 import react.dom.*
-import react.router.dom.browserRouter
-import react.router.dom.navLink
-import react.router.dom.route
-
-import react.router.dom.switch
-
-import styled.css
-import styled.styledA
+import react.router.dom.*
+import styled.*
 import styled.styledDiv
-import styled.styledNav
+
+external interface AppState : RState {
+    var logged: Boolean
+}
 
 @JsExport
-class Application : RComponent<RProps,RState>() {
+class Application : RComponent<RProps, AppState>() {
 
     private fun RBuilder.link(href: String, text: String) {
-        styledA(href = href) {
-            css {
-                classes = mutableListOf("nav-link")
-                +ComponentStyles.navbarLink
+        routeLink(href, className = "nav-link") {
+            styledDiv {
+                css {
+                    //classes = mutableListOf("nav-link")
+                    +ComponentStyles.navbarLink
+                }
+                +text
             }
-            +text
         }
     }
 
@@ -45,7 +41,12 @@ class Application : RComponent<RProps,RState>() {
                 color = Color.white
             }
 
-            div(classes = "container"){
+            styledDiv {
+                css {
+                    classes = mutableListOf("container")
+                    maxWidth = 820.px
+                }
+
                 styledA(href = "#") {
                     css {
                         classes = mutableListOf("navbar-bra nd")
@@ -62,38 +63,57 @@ class Application : RComponent<RProps,RState>() {
                 }
                 ul(classes = "navbar-nav ms-md-auto") {
                     li(classes = "nav-item"){
-                        link("#", "Войти")
+                        link("/login", "Войти")
                     }
                     li(classes = "nav-item"){
-                        link("#", "Правила")
+                        link("/rules", "Правила")
                     }
                 }
 
-                santaButton() {
-                    text = "Создать"
-                    disabled = false
-                    color = ButtonColor.ORANGE
+                routeLink("/games") {
+                    santaButton() {
+                        text = "Создать"
+                        disabled = false
+                        color = ButtonColor.ORANGE
+                    }
                 }
             }
         }
     }
 
     override fun RBuilder.render() {
-
-        styledDiv {
-            css {
-                margin(0.px)
-                padding(0.px)
-                fontFamily = "'Roboto', sans-serif"
-            }
-
-            navbar()
+        browserRouter {
             styledDiv {
                 css {
-                    classes = mutableListOf("container px-4 px-md-3")
+                    margin(0.px)
+                    padding(0.px)
+                    fontFamily = "'Roboto', sans-serif"
+                }
+
+                navbar()
+                styledDiv {
+                    css {
+                        classes = mutableListOf("container")
+                        maxWidth = 820.px
+                    }
+
+                    switch {
+                        route("/", exact = true) {
+                            child(Profile::class) {}
+                        }
+                        route("/login", strict = true) {
+                            child(Login::class) {}
+                        }
+                        route("/signup", strict = true) {
+                            child(Signup::class) {}
+                        }
+                        route("/games", strict = true) {
+                            child(GameList::class) {}
+                        }
+                        redirect(from = "/redirect", to = "/redirected")
+                    }
                 }
             }
         }
-
     }
 }
