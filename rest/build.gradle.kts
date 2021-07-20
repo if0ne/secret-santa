@@ -39,6 +39,8 @@ dependencies {
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("org.kodein.di:kodein-di-framework-ktor-server-jvm:$kodeinVersion")
 
+    implementation(project(":shared-models"))
+
     testImplementation("io.ktor:ktor-server-tests:$ktorVersion")
 }
 

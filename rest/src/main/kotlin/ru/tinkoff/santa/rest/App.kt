@@ -13,6 +13,7 @@ import org.kodein.di.singleton
 import ru.tinkoff.santa.rest.gift.giftComponents
 import ru.tinkoff.santa.rest.gift.giftModule
 import ru.tinkoff.santa.rest.plugin.configureSerialization
+import ru.tinkoff.santa.rest.plugin.exceptionHandlerModule
 import ru.tinkoff.santa.rest.session.sessionComponents
 import ru.tinkoff.santa.rest.session.sessionModule
 import ru.tinkoff.santa.rest.user.userComponents
@@ -29,6 +30,8 @@ fun main() {
             giftComponents()
         }
         configureSerialization()
+
+        exceptionHandlerModule()
         sessionModule()
         userModule()
         giftModule()

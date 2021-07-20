@@ -1,9 +1,14 @@
 package ru.tinkoff.santa.rest.user
 
+import kotlinx.serialization.Contextual
 import java.util.*
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class User(
     val id: Int,
+    @Contextual
     val telegramGuid: UUID?,
     val nickname: String,
     val email: String,

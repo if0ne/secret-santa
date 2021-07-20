@@ -1,6 +1,7 @@
 package ru.tinkoff.santa.rest.session
 
 import java.sql.Timestamp
+import java.time.LocalDateTime
 import java.util.*
 
 class SessionService(private val sessionDao: SessionDao) {
@@ -17,8 +18,8 @@ class SessionService(private val sessionDao: SessionDao) {
         description: String?,
         hostId: Int,
         budget: Int,
-        eventTimestamp: Timestamp,
-        timestampToChoose: Timestamp,
+        eventDateTime: LocalDateTime,
+        dateTimeToChoose: LocalDateTime,
         minPlayersQuantity: Int = 3,
     ) = sessionDao.create(
         currentState,
@@ -26,8 +27,8 @@ class SessionService(private val sessionDao: SessionDao) {
         hostId,
         budget,
         minPlayersQuantity,
-        eventTimestamp,
-        timestampToChoose
+        eventDateTime,
+        dateTimeToChoose
     )
 
     fun update(
@@ -37,8 +38,8 @@ class SessionService(private val sessionDao: SessionDao) {
         hostId: Int,
         budget: Int,
         minPlayersQuantity: Int,
-        eventTimestamp: Timestamp,
-        timestampToChoose: Timestamp
+        eventDateTime: LocalDateTime,
+        dateTimeToChoose: LocalDateTime,
     ) = sessionDao.update(
         id,
         currentState,
@@ -46,8 +47,8 @@ class SessionService(private val sessionDao: SessionDao) {
         hostId,
         budget,
         minPlayersQuantity,
-        eventTimestamp,
-        timestampToChoose
+        eventDateTime,
+        dateTimeToChoose
     )
 
     fun delete(id: Int) = sessionDao.delete(id)

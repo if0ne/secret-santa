@@ -3,7 +3,8 @@ package ru.tinkoff.santa.rest.session
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.sql.Timestamp
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.*
 
 class SessionDao(private val database: Database) {
@@ -33,8 +34,8 @@ class SessionDao(private val database: Database) {
         hostId: Int,
         budget: Int,
         minPlayersQuantity: Int,
-        eventTimestamp: Timestamp,
-        timestampToChoose: Timestamp
+        eventDateTime: LocalDateTime,
+        dateTimeToChoose: LocalDateTime
     ) = transaction(database) {
         Sessions.insert {
             it[guid] = UUID.randomUUID()
@@ -45,8 +46,8 @@ class SessionDao(private val database: Database) {
                 hostId,
                 budget,
                 minPlayersQuantity,
-                eventTimestamp,
-                timestampToChoose
+                eventDateTime,
+                dateTimeToChoose
             )
         }
     }
@@ -58,8 +59,8 @@ class SessionDao(private val database: Database) {
         hostId: Int,
         budget: Int,
         minPlayersQuantity: Int,
-        eventTimestamp: Timestamp,
-        timestampToChoose: Timestamp
+        eventDateTime: LocalDateTime,
+        dateTimeToChoose: LocalDateTime
     ) = transaction(database) {
         Sessions.update({ Sessions.id eq id }) {
             wrapSessionToUpdateBuilder(
@@ -69,8 +70,8 @@ class SessionDao(private val database: Database) {
                 hostId,
                 budget,
                 minPlayersQuantity,
-                eventTimestamp,
-                timestampToChoose
+                eventDateTime,
+                dateTimeToChoose
             )
         }
     }
@@ -89,16 +90,16 @@ private fun wrapSessionToUpdateBuilder(
     hostId: Int,
     budget: Int,
     minPlayersQuantity: Int,
-    eventTimestamp: Timestamp,
-    timestampToChoose: Timestamp
+    eventDateTime: LocalDateTime,
+    dateTimeToChoose: LocalDateTime
 ) {
     updateBuilder[Sessions.currentState] = currentState
     updateBuilder[Sessions.description] = description
     updateBuilder[Sessions.hostId] = hostId
     updateBuilder[Sessions.budget] = budget
     updateBuilder[Sessions.minPlayersQuantity] = minPlayersQuantity
-    updateBuilder[Sessions.eventTimestamp] = eventTimestamp.toInstant()
-    updateBuilder[Sessions.timestampToChoose] = timestampToChoose.toInstant()
+    updateBuilder[Sessions.eventTimestamp] = eventDateTime.toInstant(ZoneOffset.UTC)
+    updateBuilder[Sessions.timestampToChoose] = dateTimeToChoose.toInstant(ZoneOffset.UTC)
 }
 
 private fun extractSession(row: ResultRow): Session =
@@ -110,6 +111,6 @@ private fun extractSession(row: ResultRow): Session =
         row[Sessions.hostId],
         row[Sessions.budget],
         row[Sessions.minPlayersQuantity],
-        Timestamp.from(row[Sessions.eventTimestamp]),
-        Timestamp.from(row[Sessions.timestampToChoose])
+        LocalDateTime.ofInstant(row[Sessions.eventTimestamp], ZoneOffset.UTC),
+        LocalDateTime.ofInstant(row[Sessions.timestampToChoose], ZoneOffset.UTC)
     )
