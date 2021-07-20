@@ -1,13 +1,11 @@
-package ru.rsreu.plugins
-
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import ru.rsreu.TgBot
+import ru.rsreu.bot.SantaBot
 
-fun Application.configureRouting(bot: TgBot) {
+fun Application.configureRouting(bot: SantaBot) {
 
     routing {
         post("/") {
