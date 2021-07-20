@@ -1,5 +1,7 @@
 package ru.tinkoff.santa.rest.gift
 
+import ru.tinkoff.sanata.shared_models.model.Gift
+
 class GiftService(private val giftDao: GiftDao) {
     fun getAll(): List<Gift> = giftDao.getAll()
 

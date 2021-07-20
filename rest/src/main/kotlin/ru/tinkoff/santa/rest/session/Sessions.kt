@@ -2,6 +2,7 @@ package ru.tinkoff.santa.rest.session
 
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.`java-time`.timestamp
+import ru.tinkoff.sanata.shared_models.model.SessionState
 
 object Sessions : IntIdTable() {
     val guid = uuid("guid")

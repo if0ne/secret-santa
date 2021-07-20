@@ -3,6 +3,8 @@ package ru.tinkoff.santa.rest.session
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
+import ru.tinkoff.sanata.shared_models.model.Session
+import ru.tinkoff.sanata.shared_models.model.SessionState
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*

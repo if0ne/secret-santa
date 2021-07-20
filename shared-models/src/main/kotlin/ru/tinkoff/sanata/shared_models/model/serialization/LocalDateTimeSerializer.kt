@@ -1,4 +1,4 @@
-package ru.tinkoff.santa.rest.serialization
+package ru.tinkoff.sanata.shared_models.model.serialization
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializer

@@ -1,8 +1,8 @@
-package ru.tinkoff.santa.rest.session
+package ru.tinkoff.sanata.shared_models.model
 
 import kotlinx.serialization.Serializable
-import ru.tinkoff.santa.rest.serialization.LocalDateTimeSerializer
-import ru.tinkoff.santa.rest.serialization.UUIDSerializer
+import ru.tinkoff.sanata.shared_models.model.serialization.LocalDateTimeSerializer
+import ru.tinkoff.sanata.shared_models.model.serialization.UUIDSerializer
 import java.util.*
 import java.time.LocalDateTime
 

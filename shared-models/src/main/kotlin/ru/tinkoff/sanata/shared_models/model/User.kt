@@ -1,14 +1,15 @@
-package ru.tinkoff.santa.rest.user
+package ru.tinkoff.sanata.shared_models.model
 
 import kotlinx.serialization.Contextual
 import java.util.*
 
 import kotlinx.serialization.Serializable
+import ru.tinkoff.sanata.shared_models.model.serialization.UUIDSerializer
 
 @Serializable
 data class User(
     val id: Int,
-    @Contextual
+    @Serializable(with = UUIDSerializer::class)
     val telegramGuid: UUID?,
     val nickname: String,
     val email: String,

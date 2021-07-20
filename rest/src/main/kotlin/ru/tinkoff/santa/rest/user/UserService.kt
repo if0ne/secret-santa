@@ -1,5 +1,6 @@
 package ru.tinkoff.santa.rest.user
 
+import ru.tinkoff.sanata.shared_models.model.User
 import java.util.*
 
 class UserService(private val userDao: UserDao) {

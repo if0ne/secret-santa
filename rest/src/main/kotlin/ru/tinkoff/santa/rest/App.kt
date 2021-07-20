@@ -18,6 +18,8 @@ import ru.tinkoff.santa.rest.session.sessionComponents
 import ru.tinkoff.santa.rest.session.sessionModule
 import ru.tinkoff.santa.rest.user.userComponents
 import ru.tinkoff.santa.rest.user.userModule
+import ru.tinkoff.santa.rest.user_session.userSessionComponents
+import ru.tinkoff.santa.rest.user_session_gift.userSessionGiftComponents
 
 fun main() {
     val config = ConfigFactory.load().extract<AppConfig>()
@@ -28,6 +30,8 @@ fun main() {
             sessionComponents()
             userComponents()
             giftComponents()
+            userSessionComponents()
+            userSessionGiftComponents()
         }
         configureSerialization()
 

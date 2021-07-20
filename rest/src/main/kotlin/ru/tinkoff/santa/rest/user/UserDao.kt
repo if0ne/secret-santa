@@ -3,6 +3,7 @@ package ru.tinkoff.santa.rest.user
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
+import ru.tinkoff.sanata.shared_models.model.User
 import java.util.*
 
 class UserDao(private val database: Database) {
@@ -50,8 +51,8 @@ class UserDao(private val database: Database) {
         middleName: String?,
         avatarUrl: String?,
         telegramId: Long?
-    ) = transaction(database) {
-        Users.insert {
+    ): User = transaction(database) {
+        User(Users.insertAndGetId {
             wrapUserToUpdateBuilder(
                 it,
                 telegramGuid,
@@ -64,7 +65,7 @@ class UserDao(private val database: Database) {
                 avatarUrl,
                 telegramId
             )
-        }
+        }.value, telegramGuid, nickname, email, password, firstName, lastName, middleName, avatarUrl, telegramId)
     }
 
     fun update(

@@ -1,6 +1,7 @@
 package ru.tinkoff.santa.rest.session
 
-import java.sql.Timestamp
+import ru.tinkoff.sanata.shared_models.model.Session
+import ru.tinkoff.sanata.shared_models.model.SessionState
 import java.time.LocalDateTime
 import java.util.*
 

@@ -1,4 +1,4 @@
-package ru.tinkoff.santa.rest.session
+package ru.tinkoff.sanata.shared_models.model
 
 enum class SessionState {
     NONE,

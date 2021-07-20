@@ -3,6 +3,7 @@ package ru.tinkoff.santa.rest.gift
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
+import ru.tinkoff.sanata.shared_models.model.Gift
 
 class GiftDao(private val database: Database) {
     fun getAll(): List<Gift> = transaction(database) {
