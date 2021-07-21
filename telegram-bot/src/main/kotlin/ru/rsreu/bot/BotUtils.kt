@@ -1,4 +1,4 @@
-package ru.rsreu
+package ru.rsreu.bot
 
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.entities.CallbackQuery
@@ -11,6 +11,12 @@ fun Bot.sendMsg(chatId: Long, text: String, buttons: ReplyMarkup? = null) =
         text = text,
         replyMarkup = buttons
     )
+
+fun Bot.sendSomeMsg(chatId: Long, vararg texts: String) {
+    texts.forEach {
+        sendMsg(chatId, it)
+    }
+}
 
 fun Bot.deleteLastMessage(callbackQuery: CallbackQuery) {
     this.deleteMessage(

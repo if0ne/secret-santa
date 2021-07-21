@@ -12,7 +12,12 @@ enum class ButtonsType {
     FUNCTIONAL_BUTTONS {
         override fun getButtons() = InlineKeyboardMarkup.createSingleRowKeyboard(
             InlineKeyboardButton.CallbackData("Создать лобби", "create"),
-            InlineKeyboardButton.CallbackData("Список моих лобби", "lobbies"),
+            InlineKeyboardButton.CallbackData("Список моих сессий", "sessions"),
+        )
+    },
+    LOBBY_BUTTONS {
+        override fun getButtons() = InlineKeyboardMarkup.createSingleRowKeyboard(
+            InlineKeyboardButton.CallbackData("Добавить/изменить описание подарка", "change")
         )
     };
 
