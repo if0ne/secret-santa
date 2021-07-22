@@ -5,6 +5,7 @@ import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
 import react.dom.attrs
+import styled.CssHolder
 import styled.css
 import styled.styledButton
 
@@ -17,6 +18,7 @@ external interface ButtonProps: RProps {
     var text: String
     var color: ButtonColor
     var disabled: Boolean
+    var isSubmit: Boolean
 
     var onClick: (Event) -> Unit
 }
@@ -34,13 +36,17 @@ class Button: RComponent<ButtonProps, RState>() {
                 verticalAlign = VerticalAlign.middle
 
                 border = "0"
-                borderRadius = LinearDimension("25px")
+                borderRadius = LinearDimension("20px")
 
                 color = Color.white
-                fontSize = LinearDimension("1rem")
+                fontSize = 1.rem
                 fontFamily = "'Roboto', sans-serif"
 
                 padding((0.375).rem, (0.75).rem)
+
+                if (props.isSubmit) {
+                    +ComponentStyles.buttonSubmit
+                }
             }
             css.hover {
                 backgroundColor = Color("#833C2C")

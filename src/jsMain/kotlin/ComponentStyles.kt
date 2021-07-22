@@ -1,7 +1,5 @@
-import kotlinx.css.Color
-import kotlinx.css.color
+import kotlinx.css.*
 import kotlinx.css.properties.TextDecoration
-import kotlinx.css.textDecoration
 import styled.StyleSheet
 
 object ComponentStyles : StyleSheet("ComponentStyles") {
@@ -15,4 +13,13 @@ object ComponentStyles : StyleSheet("ComponentStyles") {
         }
     }
 
+    val pageTitle by css {
+        fontSize = (1.75).rem
+        fontWeight = FontWeight.bold
+    }
+
+    val buttonSubmit by css {
+        width = LinearDimension("50%")
+        marginTop = (0.5).rem
+    }
 }

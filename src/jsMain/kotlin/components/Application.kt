@@ -14,9 +14,7 @@ import react.router.dom.*
 import styled.*
 import styled.styledDiv
 
-external interface AppState : RState {
-    var logged: Boolean
-}
+data class AppState(var logged: Boolean) : RState
 
 @JsExport
 class Application : RComponent<RProps, AppState>() {
@@ -46,21 +44,22 @@ class Application : RComponent<RProps, AppState>() {
                     classes = mutableListOf("container")
                     maxWidth = 820.px
                 }
+                routeLink(to = "/", className = "navbar-brand") {
+                    styledDiv {
+                        css {
+                            color = Color.white
+                            fontWeight = FontWeight.bold
+                            textDecoration = TextDecoration.none
+                        }
 
-                styledA(href = "#") {
-                    css {
-                        classes = mutableListOf("navbar-bra nd")
-                        color = Color.white
-                        fontWeight = FontWeight.bold
-                        textDecoration = TextDecoration.none
+                        css.hover {
+                            color = Color("#322C40")
+                        }
+
+                        +"Тайный Санта"
                     }
-
-                    css.hover {
-                        color = Color("#322C40")
-                    }
-
-                    +"Тайный Санта"
                 }
+
                 ul(classes = "navbar-nav ms-md-auto") {
                     li(classes = "nav-item"){
                         link("/login", "Войти")
@@ -70,7 +69,7 @@ class Application : RComponent<RProps, AppState>() {
                     }
                 }
 
-                routeLink("/games") {
+                routeLink("/login") {
                     santaButton() {
                         text = "Создать"
                         disabled = false
@@ -94,12 +93,16 @@ class Application : RComponent<RProps, AppState>() {
                 styledDiv {
                     css {
                         classes = mutableListOf("container")
+                        marginTop = 40.px
                         maxWidth = 820.px
                     }
 
                     switch {
                         route("/", exact = true) {
-                            child(Profile::class) {}
+                            child(Welcome::class) {}
+                        }
+                        route("/rules", strict = true) {
+                            child(Rules::class) {}
                         }
                         route("/login", strict = true) {
                             child(Login::class) {}
@@ -110,7 +113,7 @@ class Application : RComponent<RProps, AppState>() {
                         route("/games", strict = true) {
                             child(GameList::class) {}
                         }
-                        redirect(from = "/redirect", to = "/redirected")
+                        redirect(to = "/")
                     }
                 }
             }

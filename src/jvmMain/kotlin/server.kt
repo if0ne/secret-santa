@@ -9,9 +9,13 @@ import io.ktor.http.content.resources
 import io.ktor.http.content.static
 import kotlinx.html.*
 
+import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.response.*
+
 fun HTML.index() {
     head {
-        title("Hello from Ktor!")
+        title("Тайный Санта")
 
         link("https://fonts.googleapis.com")
         link("https://fonts.gstatic.com")
