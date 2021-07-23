@@ -1,6 +1,7 @@
 package components
 
 import components.basic.ButtonColor
+import components.basic.ButtonType
 import components.basic.santaButton
 import components.basic.santaInput
 import kotlinx.css.LinearDimension
@@ -92,7 +93,7 @@ class Signup: RComponent<RProps,RState>() {
                     color = ButtonColor.ORANGE
                     text = "Зарегистрироваться"
                     disabled = false
-                    isSubmit = true
+                    buttonType = ButtonType.SUBMIT
                 }
 
                 br {}

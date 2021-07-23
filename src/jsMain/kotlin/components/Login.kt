@@ -1,26 +1,28 @@
 package components
 
-import ComponentStyles.buttonSubmit
 import components.basic.ButtonColor
+import components.basic.ButtonType
 import components.basic.santaButton
 import components.basic.santaInput
-import kotlinx.css.CSSBuilder
 import kotlinx.css.LinearDimension
-import kotlinx.css.br
 import kotlinx.css.marginTop
+import org.w3c.dom.events.Event
 
 import react.RBuilder
 import react.RComponent
 import react.RProps
 import react.RState
 import react.dom.br
-import react.dom.p
 import react.router.dom.routeLink
 import styled.css
 import styled.styledDiv
 import styled.styledP
 
-class Login: RComponent<RProps,RState>() {
+external interface LoginProps: RProps {
+    var logginCallback: (Event) -> Unit
+}
+
+class Login: RComponent<LoginProps, RState>() {
 
     override fun RBuilder.render() {
 
@@ -40,10 +42,6 @@ class Login: RComponent<RProps,RState>() {
                 label = "E-mail"
                 type = components.basic.InputType.EMAIL
                 id = "email"
-                validation = {
-                    false
-                }
-                error = "Неверный формат почты"
             }
 
             santaInput {
@@ -56,7 +54,9 @@ class Login: RComponent<RProps,RState>() {
                 color = ButtonColor.ORANGE
                 text = "Войти"
                 disabled = false
-                isSubmit = true
+                buttonType = ButtonType.SUBMIT
+
+                onClick = props.logginCallback
             }
             br {}
             routeLink("/signup") {

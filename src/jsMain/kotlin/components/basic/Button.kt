@@ -14,11 +14,17 @@ enum class ButtonColor(val hex: String) {
     DARK("#322C40"),
 }
 
+enum class ButtonType {
+    DEFAULT,
+    SUBMIT,
+    FULL_WIDTH,
+}
+
 external interface ButtonProps: RProps {
     var text: String
     var color: ButtonColor
     var disabled: Boolean
-    var isSubmit: Boolean
+    var buttonType: ButtonType
 
     var onClick: (Event) -> Unit
 }
@@ -36,7 +42,7 @@ class Button: RComponent<ButtonProps, RState>() {
                 verticalAlign = VerticalAlign.middle
 
                 border = "0"
-                borderRadius = LinearDimension("20px")
+                borderRadius = LinearDimension("15px")
 
                 color = Color.white
                 fontSize = 1.rem
@@ -44,8 +50,16 @@ class Button: RComponent<ButtonProps, RState>() {
 
                 padding((0.375).rem, (0.75).rem)
 
-                if (props.isSubmit) {
-                    +ComponentStyles.buttonSubmit
+                when(props.buttonType) {
+                    ButtonType.SUBMIT -> {
+                        +ComponentStyles.buttonSubmit
+                    }
+                    ButtonType.FULL_WIDTH -> {
+                        +ComponentStyles.buttonProfile
+                    }
+                    else -> {
+
+                    }
                 }
             }
             css.hover {

@@ -22,4 +22,9 @@ object ComponentStyles : StyleSheet("ComponentStyles") {
         width = LinearDimension("50%")
         marginTop = (0.5).rem
     }
+
+    val buttonProfile by css {
+        width = LinearDimension("100%")
+        marginTop = (0.5).rem
+    }
 }

@@ -1,6 +1,7 @@
 package components
 
 import components.basic.ButtonColor
+import components.basic.ButtonType
 import components.basic.santaButton
 import kotlinx.css.*
 import kotlinx.css.properties.TextDecoration
@@ -15,6 +16,10 @@ import styled.*
 import styled.styledDiv
 
 data class AppState(var logged: Boolean) : RState
+
+interface GameId : RProps {
+    var id: Int
+}
 
 @JsExport
 class Application : RComponent<RProps, AppState>() {
@@ -60,20 +65,32 @@ class Application : RComponent<RProps, AppState>() {
                     }
                 }
 
-                ul(classes = "navbar-nav ms-md-auto") {
-                    li(classes = "nav-item"){
-                        link("/login", "Войти")
+                if (!state.logged) {
+                    ul(classes = "navbar-nav ms-md-auto") {
+                        li(classes = "nav-item") {
+                            link("/login","Войти")
+                        }
+                        li(classes = "nav-item") {
+                            link("/rules","Правила")
+                        }
                     }
-                    li(classes = "nav-item"){
-                        link("/rules", "Правила")
-                    }
-                }
 
-                routeLink("/login") {
-                    santaButton() {
-                        text = "Создать"
-                        disabled = false
-                        color = ButtonColor.ORANGE
+                    routeLink("/login") {
+                        santaButton() {
+                            text = "Создать"
+                            disabled = false
+                            color = ButtonColor.ORANGE
+                            buttonType = ButtonType.DEFAULT
+                        }
+                    }
+                } else {
+                    ul(classes = "navbar-nav ms-md-auto") {
+                        li(classes = "nav-item") {
+                            link("/games","Мои игры")
+                        }
+                        li(classes = "nav-item") {
+                            link("/rules","Правила")
+                        }
                     }
                 }
             }
@@ -98,20 +115,41 @@ class Application : RComponent<RProps, AppState>() {
                     }
 
                     switch {
-                        route("/", exact = true) {
-                            child(Welcome::class) {}
-                        }
                         route("/rules", strict = true) {
                             child(Rules::class) {}
                         }
-                        route("/login", strict = true) {
-                            child(Login::class) {}
-                        }
-                        route("/signup", strict = true) {
-                            child(Signup::class) {}
-                        }
-                        route("/games", strict = true) {
-                            child(GameList::class) {}
+                        if (!state.logged) {
+                            route("/", exact = true) {
+                                child(Welcome::class) {}
+                            }
+                            route("/login", strict = true) {
+                                child(Login::class) {
+                                    attrs.logginCallback = {
+                                        setState(AppState(true))
+                                    }
+                                }
+                            }
+                            route("/signup", strict = true) {
+                                child(Signup::class) {}
+                            }
+                        } else {
+                            route("/", exact = true) {
+                                child(Profile::class) {}
+                            }
+                            route("/games", strict = true) {
+                                child(GameList::class) {}
+                            }
+                            route("/create_game", strict = true) {
+                                child(GameCreation::class) {}
+                            }
+                            route("/create_game", strict = true) {
+                                child(GameCreation::class) {}
+                            }
+                            route<GameId>("/game/:id") { props ->
+                                child(GameView::class) {
+
+                                }
+                            }
                         }
                         redirect(to = "/")
                     }

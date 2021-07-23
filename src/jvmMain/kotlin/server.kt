@@ -1,5 +1,3 @@
-import io.ktor.application.call
-import io.ktor.html.respondHtml
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.get
 import io.ktor.routing.routing
@@ -10,8 +8,7 @@ import io.ktor.http.content.static
 import kotlinx.html.*
 
 import io.ktor.application.*
-import io.ktor.features.*
-import io.ktor.response.*
+import io.ktor.html.*
 
 fun HTML.index() {
     head {

@@ -1,6 +1,7 @@
 package components
 
 import components.basic.ButtonColor
+import components.basic.ButtonType
 import components.basic.santaButton
 import components.basic.santaInput
 import kotlinx.css.fontSize
@@ -47,7 +48,7 @@ class Welcome: RComponent<RProps,RState>() {
                     color = ButtonColor.ORANGE
                     text = "Начать игру"
                     disabled = false
-                    isSubmit = true
+                    buttonType = ButtonType.SUBMIT
                 }
             }
 
