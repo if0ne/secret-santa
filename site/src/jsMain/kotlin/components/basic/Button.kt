@@ -5,7 +5,6 @@ import kotlinx.html.js.onClickFunction
 import org.w3c.dom.events.Event
 import react.*
 import react.dom.attrs
-import styled.CssHolder
 import styled.css
 import styled.styledButton
 
@@ -17,6 +16,7 @@ enum class ButtonColor(val hex: String) {
 enum class ButtonType {
     DEFAULT,
     SUBMIT,
+    WIDTH_WITH_MARGIN,
     FULL_WIDTH,
 }
 
@@ -54,8 +54,12 @@ class Button: RComponent<ButtonProps, RState>() {
                     ButtonType.SUBMIT -> {
                         +ComponentStyles.buttonSubmit
                     }
+                    ButtonType.WIDTH_WITH_MARGIN -> {
+                        +ComponentStyles.marginTop
+                        +ComponentStyles.buttonWidthFull
+                    }
                     ButtonType.FULL_WIDTH -> {
-                        +ComponentStyles.buttonProfile
+                        +ComponentStyles.buttonWidthFull
                     }
                     else -> {
 

@@ -27,6 +27,7 @@ external interface InputProps: RProps {
     var id: String
     var label: String?
     var error: String?
+    var placeholder: String?
 
     var validation: ((String) -> Boolean)?
 
@@ -60,7 +61,7 @@ class InputField : RComponent<InputProps, InputState>() {
                 }
                 attrs {
                     id = props.id
-
+                    placeholder = props.placeholder ?: ""
                     onChangeFunction = {
                         val value = (it.target as HTMLInputElement).value
                         val valid =  if (props.validation != null) props.validation!!(value) else state.isRight
