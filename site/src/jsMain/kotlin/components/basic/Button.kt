@@ -11,6 +11,7 @@ import styled.styledButton
 enum class ButtonColor(val hex: String) {
     ORANGE("#D9765F"),
     DARK("#322C40"),
+    RED("#730217")
 }
 
 enum class ButtonType {
@@ -33,7 +34,6 @@ class Button: RComponent<ButtonProps, RState>() {
 
     override fun RBuilder.render() {
         styledButton() {
-
             css {
                 display = Display.inlineBlock
                 backgroundColor = Color(props.color.hex)

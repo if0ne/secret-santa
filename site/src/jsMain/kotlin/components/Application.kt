@@ -5,6 +5,7 @@ import components.basic.ButtonType
 import components.basic.santaButton
 import kotlinx.css.*
 import kotlinx.css.properties.TextDecoration
+import kotlinx.html.RP
 
 import react.RBuilder
 import react.RComponent
@@ -15,6 +16,10 @@ import react.router.dom.*
 import styled.*
 import styled.styledDiv
 
+external interface AppProps: RProps {
+
+}
+
 data class AppState(var logged: Boolean, var cachedUser: String) : RState
 
 interface GameId : RProps {
@@ -22,7 +27,7 @@ interface GameId : RProps {
 }
 
 @JsExport
-class Application : RComponent<RProps, AppState>() {
+class Application : RComponent<AppProps, AppState>() {
 
     private fun RBuilder.link(href: String, text: String) {
         routeLink(href, className = "nav-link") {
@@ -165,7 +170,8 @@ class Application : RComponent<RProps, AppState>() {
                             route<GameId>("/game/:id") {
                                 child(GameView::class) {
                                     attrs.gameId = "${it.match.params.id}"
-                                    attrs.isStarted = false
+                                    attrs.isStarted = "${it.match.params.id}" == "5"
+                                    attrs.isHost = true
                                 }
                             }
                         }
