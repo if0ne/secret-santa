@@ -5,6 +5,7 @@ import components.basic.ButtonType
 import components.basic.santaButton
 import kotlinx.css.*
 import kotlinx.css.properties.TextDecoration
+import kotlinx.html.RP
 
 import react.RBuilder
 import react.RComponent
@@ -15,14 +16,18 @@ import react.router.dom.*
 import styled.*
 import styled.styledDiv
 
-data class AppState(var logged: Boolean) : RState
+external interface AppProps: RProps {
+
+}
+
+data class AppState(var logged: Boolean, var cachedUser: String) : RState
 
 interface GameId : RProps {
     var id: Int
 }
 
 @JsExport
-class Application : RComponent<RProps, AppState>() {
+class Application : RComponent<AppProps, AppState>() {
 
     private fun RBuilder.link(href: String, text: String) {
         routeLink(href, className = "nav-link") {
@@ -125,7 +130,19 @@ class Application : RComponent<RProps, AppState>() {
                             route("/login", strict = true) {
                                 child(Login::class) {
                                     attrs.logginCallback = {
-                                        setState(AppState(true))
+                                        val cachedUser = "Maksim" /*User(
+                                            1,
+                                            null,
+                                            "Gay Boy",
+                                            "maksim.astash@gmail.com",
+                                            ByteArray(0),
+                                            "Максим",
+                                            "Асташкин",
+                                            "Сергеевич",
+                                            "https://sun9-47.userapi.com/impf/c848624/v848624074/19f3bb/9e6Trlyf1o4.jpg?size=2560x1707&quality=96&sign=cc31343bd89d4700186721803dbb97da&type=album",
+                                            null
+                                        )*/
+                                        setState(AppState(true, cachedUser))
                                     }
                                 }
                             }
@@ -134,7 +151,12 @@ class Application : RComponent<RProps, AppState>() {
                             }
                         } else {
                             route("/", exact = true) {
-                                child(Profile::class) {}
+                                child(Profile::class) {
+                                    attrs.user = state.cachedUser
+                                    attrs.logoutCallback = {
+                                        setState(AppState(false, ""))
+                                    }
+                                }
                             }
                             route("/games", strict = true) {
                                 child(GameList::class) {}
@@ -145,9 +167,11 @@ class Application : RComponent<RProps, AppState>() {
                             route("/create_game", strict = true) {
                                 child(GameCreation::class) {}
                             }
-                            route<GameId>("/game/:id") { props ->
+                            route<GameId>("/game/:id") {
                                 child(GameView::class) {
-
+                                    attrs.gameId = "${it.match.params.id}"
+                                    attrs.isStarted = "${it.match.params.id}" == "5"
+                                    attrs.isHost = true
                                 }
                             }
                         }

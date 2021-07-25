@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 val ktorVersion: String by project
 val kotlinVersion: String by project
 val logbackVersion: String by project
@@ -9,9 +11,10 @@ val kodeinVersion: String by project
 
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.5.21"
+    //id("org.jetbrains.kotlin.jvm") version "1.5.21"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.5.21"
     id("com.github.johnrengelman.shadow") version "6.1.0"
+    kotlin("jvm") version "1.5.30-M1"
 }
 
 group = "ru.tinkoff"
@@ -45,3 +48,11 @@ dependencies {
 }
 
 
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}

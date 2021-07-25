@@ -1,42 +1,25 @@
 package components.basic
 
-import kotlinx.css.*
-import kotlinx.css.properties.LineHeight
-import kotlinx.css.properties.Transitions
-import kotlinx.css.properties.transition
+import kotlinx.css.Color
+import kotlinx.css.color
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
 import org.w3c.dom.HTMLInputElement
 import react.*
 import react.dom.attrs
-import react.dom.br
-import react.dom.input
-import styled.css
+import styled.*
 
-import styled.styledDiv
-import styled.styledInput
-import styled.styledLabel
-
-enum class InputType(val type: kotlinx.html.InputType) {
-    DEFAULT(kotlinx.html.InputType.text),
-    EMAIL(kotlinx.html.InputType.email),
-    PASSWORD(kotlinx.html.InputType.password),
-}
-
-external interface InputProps: RProps {
+external interface TextAreaProps: RProps {
     var id: String
     var label: String?
     var error: String?
-    var placeholder: String?
 
     var validation: ((String) -> Boolean)?
-
-    var type: InputType
 }
 
-data class InputState(var isRight: Boolean,val value: String): RState
+data class TextAreaState(var isRight: Boolean, val value: String): RState
 
-class InputField : RComponent<InputProps, InputState>() {
+class TextArea : RComponent<TextAreaProps,TextAreaState>() {
 
     init {
         state.isRight = true
@@ -55,17 +38,17 @@ class InputField : RComponent<InputProps, InputState>() {
                     +props.label!!
                 }
             }
-            styledInput(type = props.type.type) {
+            styledTextarea {
                 css {
                     classes = mutableListOf("form-control")
                 }
+
                 attrs {
                     id = props.id
-                    placeholder = props.placeholder ?: ""
                     onChangeFunction = {
                         val value = (it.target as HTMLInputElement).value
                         val valid =  if (props.validation != null) props.validation!!(value) else state.isRight
-                        setState(InputState(valid, value))
+                        setState(TextAreaState(valid, value))
                     }
                 }
             }
@@ -86,8 +69,8 @@ class InputField : RComponent<InputProps, InputState>() {
     }
 }
 
-fun RBuilder.santaInput(handler: InputProps.() -> Unit): ReactElement {
-    return child(InputField::class) {
+fun RBuilder.santaTextArea(handler: TextAreaProps.() -> Unit): ReactElement {
+    return child(TextArea::class) {
         this.attrs(handler)
     }
 }
