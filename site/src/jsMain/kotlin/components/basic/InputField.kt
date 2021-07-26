@@ -67,7 +67,7 @@ class InputField : RComponent<InputProps, InputState>() {
                     }
                 }
             }
-            if (!state.isRight) {
+            if (!state.isRight && props.error != null) {
                 styledLabel {
                     css {
                         classes = mutableListOf("form-text")

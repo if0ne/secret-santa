@@ -115,6 +115,7 @@ class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
                             state.presentDate.getHours(),
                             state.presentDate.getMinutes()
                         )
+                        console.log(withTime)
                         setState(GameCreationState(
                             state.giftValue,
                             withTime,
@@ -124,14 +125,15 @@ class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
                         ))
                     },
                     {
-                        val pureTime = Date((it.target as HTMLInputElement).value)
+                        val pureTime = ((it.target as HTMLInputElement).value).split(":")
                         val withDate = Date(
                             state.presentDate.getFullYear(),
                             state.presentDate.getMonth(),
                             state.presentDate.getDate(),
-                            pureTime.getHours(),
-                            pureTime.getHours()
+                            pureTime[0].toInt(),
+                            pureTime[1].toInt()
                         )
+                        console.log(withDate)
                         setState(GameCreationState(
                             state.giftValue,
                             withDate,
@@ -160,6 +162,7 @@ class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
                             state.startDate.getHours(),
                             state.startDate.getMinutes()
                         )
+                        console.log(withTime)
                         setState(GameCreationState(
                             state.giftValue,
                             state.presentDate,
@@ -169,14 +172,15 @@ class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
                         ))
                     },
                     {
-                        val pureTime = Date((it.target as HTMLInputElement).value)
+                        val pureTime = ((it.target as HTMLInputElement).value).split(":")
                         val withDate = Date(
                             state.startDate.getFullYear(),
                             state.startDate.getMonth(),
                             state.startDate.getDate(),
-                            pureTime.getHours(),
-                            pureTime.getHours()
+                            pureTime[0].toInt(),
+                            pureTime[1].toInt()
                         )
+                        console.log(withDate)
                         setState(GameCreationState(
                             state.giftValue,
                             state.presentDate,
