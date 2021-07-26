@@ -1,5 +1,6 @@
 package components
 
+import ComponentStyles
 import components.basic.ButtonColor
 import components.basic.ButtonType
 import components.basic.santaButton
@@ -10,10 +11,12 @@ import kotlinx.html.js.onChangeFunction
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.events.Event
 import react.*
-import react.dom.*
-import react.router.dom.*
+import react.dom.attrs
+import react.dom.br
+import react.dom.defaultValue
+import react.dom.div
+import react.router.dom.routeLink
 import styled.*
-import styled.styledLabel
 import kotlin.js.Date
 
 external interface GameCreationProps: RProps {
@@ -288,6 +291,20 @@ class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
 }
 
 private operator fun Date.compareTo(date: Date): Int {
-    //TODO: СДЕЛАТЬ СРАВНЕНИЕ ДАТ
-    return 0
+    if (this.getFullYear() >= date.getFullYear()) {
+        if (this.getMonth() >= date.getMonth()) {
+            if (this.getDate() >= date.getDate()) {
+                if (this.getHours() >= date.getHours()) {
+                    if (this.getMinutes() >= date.getMinutes()) {
+                        return if (this.getMinutes() == date.getMinutes()) {
+                            0
+                        } else {
+                            1
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return -1
 }
