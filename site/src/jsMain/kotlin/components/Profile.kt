@@ -40,12 +40,13 @@ fun RBuilder.buildImage(href: String): ReactElement {
 }
 
 external interface ProfileProps: RProps {
+    //var user: User
     var user: String
 
     var logoutCallback: (Event) -> Unit
 }
 
-data class ProfileState(var isEditTelegram: Boolean): RState
+data class ProfileState(var isEditTelegram: Boolean, var telegramCode: String): RState
 
 class Profile: RComponent<ProfileProps, ProfileState>() {
 
@@ -53,6 +54,7 @@ class Profile: RComponent<ProfileProps, ProfileState>() {
         state.isEditTelegram = false
     }
 
+    //TODO: ВЫВОД ИНФОРМАЦИИ О ПОЛЬЗОВАТЕЛЕ
     override fun RBuilder.render() {
         styledP {
             css {
@@ -108,6 +110,7 @@ class Profile: RComponent<ProfileProps, ProfileState>() {
                             buttonType = ButtonType.WIDTH_WITH_MARGIN
                         }
 
+                        //TODO: ПРОВЕРЯТЬ ПОДКЛЮЧЕН ТЕЛЕГРАМ ИЛИ НЕТ
                         santaButton {
                             color = ButtonColor.DARK
                             text = "Telegram"
@@ -115,7 +118,7 @@ class Profile: RComponent<ProfileProps, ProfileState>() {
                             buttonType = ButtonType.WIDTH_WITH_MARGIN
 
                             onClick = {
-                                setState(ProfileState(!state.isEditTelegram))
+                                setState(ProfileState(!state.isEditTelegram, ""))
                             }
                         }
                     }
@@ -168,12 +171,22 @@ class Profile: RComponent<ProfileProps, ProfileState>() {
                     santaInput {
                         type = components.basic.InputType.DEFAULT
                         id = "code"
+
+                        validation = null
+
+                        onChange = { value, _ ->
+                            setState(ProfileState(state.isEditTelegram, value))
+                        }
                     }
                     santaButton {
                         color = ButtonColor.ORANGE
                         text = "Связать"
                         disabled = false
                         buttonType = ButtonType.WIDTH_WITH_MARGIN
+
+                        onClick = {
+                            //TODO: ЗАПРОС НА СВЯЗЫВАНИЕ
+                        }
                     }
                 }
             }
