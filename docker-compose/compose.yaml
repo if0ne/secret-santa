@@ -1,0 +1,12 @@
+version: '3.1'
+
+services:
+  secret-santa-db:
+    container_name: secret-santa-db
+    image: postgres:11
+    environment:
+      - POSTGRES_DB=${POSTGRES_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - 5433:5432
