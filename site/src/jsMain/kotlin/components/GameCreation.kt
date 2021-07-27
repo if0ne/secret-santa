@@ -19,7 +19,7 @@ import react.router.dom.routeLink
 import styled.*
 import kotlin.js.Date
 
-external interface GameCreationProps: RProps {
+external interface GameCreationProps : RProps {
     //var user: User
 }
 
@@ -30,9 +30,9 @@ data class GameCreationState(
 
     var isWrongConfig: Boolean,
     var isCreated: Boolean
-): RState
+) : RState
 
-class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
+class GameCreation : RComponent<GameCreationProps, GameCreationState>() {
 
     init {
         state.giftValue = "1000"
@@ -116,13 +116,15 @@ class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
                             state.presentDate.getMinutes()
                         )
                         console.log(withTime)
-                        setState(GameCreationState(
-                            state.giftValue,
-                            withTime,
-                            state.startDate,
-                            state.isWrongConfig,
-                            state.isCreated
-                        ))
+                        setState(
+                            GameCreationState(
+                                state.giftValue,
+                                withTime,
+                                state.startDate,
+                                state.isWrongConfig,
+                                state.isCreated
+                            )
+                        )
                     },
                     {
                         val pureTime = ((it.target as HTMLInputElement).value).split(":")
@@ -134,13 +136,15 @@ class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
                             pureTime[1].toInt()
                         )
                         console.log(withDate)
-                        setState(GameCreationState(
-                            state.giftValue,
-                            withDate,
-                            state.startDate,
-                            state.isWrongConfig,
-                            state.isCreated
-                        ))
+                        setState(
+                            GameCreationState(
+                                state.giftValue,
+                                withDate,
+                                state.startDate,
+                                state.isWrongConfig,
+                                state.isCreated
+                            )
+                        )
                     }
                 )
 
@@ -163,13 +167,15 @@ class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
                             state.startDate.getMinutes()
                         )
                         console.log(withTime)
-                        setState(GameCreationState(
-                            state.giftValue,
-                            state.presentDate,
-                            withTime,
-                            state.isWrongConfig,
-                            state.isCreated
-                        ))
+                        setState(
+                            GameCreationState(
+                                state.giftValue,
+                                state.presentDate,
+                                withTime,
+                                state.isWrongConfig,
+                                state.isCreated
+                            )
+                        )
                     },
                     {
                         val pureTime = ((it.target as HTMLInputElement).value).split(":")
@@ -181,13 +187,15 @@ class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
                             pureTime[1].toInt()
                         )
                         console.log(withDate)
-                        setState(GameCreationState(
-                            state.giftValue,
-                            state.presentDate,
-                            withDate,
-                            state.isWrongConfig,
-                            state.isCreated
-                        ))
+                        setState(
+                            GameCreationState(
+                                state.giftValue,
+                                state.presentDate,
+                                withDate,
+                                state.isWrongConfig,
+                                state.isCreated
+                            )
+                        )
                     }
                 )
 
@@ -220,13 +228,15 @@ class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
                             defaultValue = "1000"
 
                             onChangeFunction = {
-                                setState(GameCreationState(
-                                    (it.target as HTMLInputElement).value,
-                                    state.presentDate,
-                                    state.startDate,
-                                    state.isWrongConfig,
-                                    state.isCreated
-                                ))
+                                setState(
+                                    GameCreationState(
+                                        (it.target as HTMLInputElement).value,
+                                        state.presentDate,
+                                        state.startDate,
+                                        state.isWrongConfig,
+                                        state.isCreated
+                                    )
+                                )
                             }
                         }
                     }
@@ -241,9 +251,25 @@ class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
                     onClick = {
                         if (state.startDate >= state.presentDate) {
                             //TODO: POST-запрос с созданием игры
-                            setState(GameCreationState(state.giftValue, state.presentDate, state.startDate, state.isWrongConfig, true))
+                            setState(
+                                GameCreationState(
+                                    state.giftValue,
+                                    state.presentDate,
+                                    state.startDate,
+                                    state.isWrongConfig,
+                                    true
+                                )
+                            )
                         } else {
-                            setState(GameCreationState(state.giftValue, state.presentDate, state.startDate, true, state.isCreated))
+                            setState(
+                                GameCreationState(
+                                    state.giftValue,
+                                    state.presentDate,
+                                    state.startDate,
+                                    true,
+                                    state.isCreated
+                                )
+                            )
                         }
                     }
                 }
@@ -295,20 +321,35 @@ class GameCreation: RComponent<GameCreationProps, GameCreationState>() {
 }
 
 private operator fun Date.compareTo(date: Date): Int {
-    if (this.getFullYear() >= date.getFullYear()) {
-        if (this.getMonth() >= date.getMonth()) {
-            if (this.getDate() >= date.getDate()) {
-                if (this.getHours() >= date.getHours()) {
-                    if (this.getMinutes() >= date.getMinutes()) {
-                        return if (this.getMinutes() == date.getMinutes()) {
-                            0
-                        } else {
-                            1
-                        }
-                    }
-                }
-            }
-        }
+    if (this.getFullYear() > date.getFullYear()) {
+        return 1
     }
-    return -1
+    if (this.getFullYear() < date.getFullYear()){
+        return -1
+    }
+    if (this.getMonth() > date.getMonth()) {
+        return 1
+    }
+    if (this.getMonth() < date.getMonth()) {
+        return -1
+    }
+    if (this.getDate() > date.getDate()) {
+        return 1
+    }
+    if (this.getDate() < date.getDate()) {
+        return -1
+    }
+    if (this.getHours() > date.getHours()) {
+        return 1
+    }
+    if (this.getHours() < date.getHours()) {
+        return -1
+    }
+    if (this.getMinutes() > date.getMinutes()) {
+        return 1
+    }
+    if (this.getMinutes() < date.getMinutes()) {
+        return -1
+    }
+    return 0
 }
