@@ -31,6 +31,7 @@ fun Application.guidModule() {
                     val guid = guidService.getByGuid(UUID.fromString(request.telegramGuid))
                     if (guid != null) {
                         userService.setTelegramId(request.id, guid.telegramId, guid.telegramGuid)
+                        guidService.delete(guid.telegramGuid)
                         call.respond(HttpStatusCode.OK)
                     }
                 }

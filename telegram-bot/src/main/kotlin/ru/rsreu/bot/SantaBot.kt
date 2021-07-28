@@ -5,19 +5,24 @@ import com.github.kotlintelegrambot.dispatch
 import com.github.kotlintelegrambot.dispatcher.callbackQuery
 import com.github.kotlintelegrambot.dispatcher.command
 import com.github.kotlintelegrambot.webhook
-import ru.rsreu.TelegramConfig
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import kotlinx.coroutines.runBlocking
+import ru.rsreu.AppConfig
+import ru.tinkoff.sanata.shared_models.request.CreateGuidRequest
 import java.util.*
 
-//383852636
-
-class SantaBot(config: TelegramConfig) {
+class SantaBot(config: AppConfig, client: HttpClient) {
 
     private val buttons = TgButtons()
 
     private val telegramBot = bot {
-        token = config.token
+        token = config.telegram.token
         webhook {
-            url = config.webhookUrl
+            url = config.telegram.webhookUrl
         }
         dispatch {
             command("start") {
@@ -30,21 +35,29 @@ class SantaBot(config: TelegramConfig) {
             }
 
             callbackQuery("register") {
-
-                val guid = UUID.randomUUID()
-
-                bot.deleteLastMessage(callbackQuery)
-                bot.sendSomeMsg(
-                    callbackQuery.from.id,
-                    "Вы успешно зарегистрировались, ваш GUID:",
-                    guid.toString(),
-                    "Укажите его в своем личном кабинете, чтобы привязать аккаунт ... ."
-                )
-                bot.sendMsg(
-                    chatId = callbackQuery.from.id,
-                    text = "Возможности бота:",
-                    buttons = buttons.getButtons(ButtonsType.FUNCTIONAL_BUTTONS)
-                )
+                runBlocking {
+                    val response = client.post<HttpResponse>(config.server.url + config.server.guidCreateRoute) {
+                        method = HttpMethod.Post
+                        contentType(ContentType.Application.Json)
+                        body = CreateGuidRequest(callbackQuery.from.id)
+                    }
+                    when(response.status) {
+                        HttpStatusCode.Created -> {
+                            bot.deleteLastMessage(callbackQuery)
+                            bot.sendSomeMsg(
+                                callbackQuery.from.id,
+                                "Вы успешно зарегистрировались, ваш GUID:",
+                                response.receive(),
+                                "Укажите его в своем личном кабинете, чтобы привязать аккаунт ... ."
+                            )
+                            bot.sendMsg(
+                                chatId = callbackQuery.from.id,
+                                text = "Возможности бота:",
+                                buttons = buttons.getButtons(ButtonsType.FUNCTIONAL_BUTTONS)
+                            )
+                        }
+                    }
+                }
             }
 
             callbackQuery("create") { }
