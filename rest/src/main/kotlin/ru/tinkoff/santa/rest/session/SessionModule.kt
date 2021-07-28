@@ -8,13 +8,11 @@ import io.ktor.routing.*
 import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
 import ru.tinkoff.sanata.shared_models.model.SessionState
-import ru.tinkoff.sanata.shared_models.request.CreateRequest
+import ru.tinkoff.sanata.shared_models.request.CreateSessionRequest
 import ru.tinkoff.sanata.shared_models.request.JoinRequest
-import ru.tinkoff.santa.rest.user_session.UserSessionDao
 import ru.tinkoff.santa.rest.user_session.UserSessionService
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 fun Application.sessionModule() {
     val sessionService: SessionService by closestDI().instance()
@@ -25,7 +23,7 @@ fun Application.sessionModule() {
         route("/session"){
             route("/create"){
                 post{
-                    val request = call.receive<CreateRequest>()
+                    val request = call.receive<CreateSessionRequest>()
                     sessionService.create(
                         SessionState.LOBBY,
                         request.description,

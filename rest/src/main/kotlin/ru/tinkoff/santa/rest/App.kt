@@ -12,6 +12,8 @@ import org.kodein.di.ktor.di
 import org.kodein.di.singleton
 import ru.tinkoff.santa.rest.gift.giftComponents
 import ru.tinkoff.santa.rest.gift.giftModule
+import ru.tinkoff.santa.rest.guid.guidComponents
+import ru.tinkoff.santa.rest.guid.guidModule
 import ru.tinkoff.santa.rest.plugin.configureSerialization
 import ru.tinkoff.santa.rest.plugin.exceptionHandlerModule
 import ru.tinkoff.santa.rest.session.sessionComponents
@@ -32,6 +34,7 @@ fun main() {
             giftComponents()
             userSessionComponents()
             userSessionGiftComponents()
+            guidComponents()
         }
         configureSerialization()
 
@@ -39,6 +42,7 @@ fun main() {
         sessionModule()
         userModule()
         giftModule()
+        guidModule()
     }
     engine.start()
 }

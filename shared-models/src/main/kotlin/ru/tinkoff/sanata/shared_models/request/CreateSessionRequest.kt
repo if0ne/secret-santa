@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
 
 @Serializable
-data class CreateRequest(
+data class CreateSessionRequest(
     val description: String,
     val hostId: Int,
     val budget: Int,

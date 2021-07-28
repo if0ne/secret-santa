@@ -6,6 +6,7 @@ import com.github.kotlintelegrambot.dispatcher.callbackQuery
 import com.github.kotlintelegrambot.dispatcher.command
 import com.github.kotlintelegrambot.webhook
 import ru.rsreu.TelegramConfig
+import java.util.*
 
 //383852636
 
@@ -30,13 +31,13 @@ class SantaBot(config: TelegramConfig) {
 
             callbackQuery("register") {
 
-                val guid = getGUID()
+                val guid = UUID.randomUUID()
 
                 bot.deleteLastMessage(callbackQuery)
                 bot.sendSomeMsg(
                     callbackQuery.from.id,
                     "Вы успешно зарегистрировались, ваш GUID:",
-                    guid,
+                    guid.toString(),
                     "Укажите его в своем личном кабинете, чтобы привязать аккаунт ... ."
                 )
                 bot.sendMsg(

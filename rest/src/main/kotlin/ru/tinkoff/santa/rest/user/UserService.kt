@@ -16,6 +16,8 @@ class UserService(private val userDao: UserDao) {
 
     fun getByTelegramId(telegramId: Long): User? = userDao.getByTelegramId(telegramId)
 
+    fun setTelegramId(userId: Int, telegramId: Long, telegramGuid: UUID) = userDao.setTelegramId(userId, telegramId, telegramGuid)
+
     fun create(
         telegramGuid: UUID?,
         nickname: String,
