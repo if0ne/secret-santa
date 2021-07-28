@@ -12,8 +12,9 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import ru.rsreu.AppConfig
+import ru.tinkoff.sanata.shared_models.model.Session
 import ru.tinkoff.sanata.shared_models.request.CreateGuidRequest
-import java.util.*
+import ru.tinkoff.sanata.shared_models.request.CreateSessionRequest
 
 class SantaBot(config: AppConfig, client: HttpClient) {
 
@@ -41,7 +42,7 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                         contentType(ContentType.Application.Json)
                         body = CreateGuidRequest(callbackQuery.from.id)
                     }
-                    when(response.status) {
+                    when (response.status) {
                         HttpStatusCode.Created -> {
                             bot.deleteLastMessage(callbackQuery)
                             bot.sendSomeMsg(
@@ -60,14 +61,54 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                 }
             }
 
-            callbackQuery("create") { }
+            callbackQuery("create") {
+                runBlocking {
+                    val id = callbackQuery.from.id
+                    val response = client.post<HttpResponse>(config.server.url + config.server.createSessionRoute) {
+                        method = HttpMethod.Post
+                        contentType(ContentType.Application.Json)
+                        body = CreateSessionRequest(
+                            "ОПИСАНИЕ",
+                            null,
+                            id,
+                            10000,
+                            "2021-12-31 12:00",
+                            "2021-12-20 12:00",
+                            5
+                        )
+                    }
+                    when (response.status) {
+                        HttpStatusCode.Created -> {
+                            bot.sendMsg(
+                                chatId = callbackQuery.from.id,
+                                text = "Успешно создалось"
+                            )
+                        }
+                    }
+                }
+            }
 
             callbackQuery("sessions") {
-                bot.sendMsg(
-                    chatId = callbackQuery.from.id,
-                    text = "Список ваших сессий:",
-                    buttons = buttons.getButtons(ButtonsType.LOBBY_BUTTONS)
-                )
+                runBlocking {
+                    val id = callbackQuery.from.id
+                    val response =
+                        client.get<HttpResponse>(config.server.url + config.server.getSessionRoute + id.toString()) {
+                            method = HttpMethod.Get
+                            contentType(ContentType.Application.Json)
+                        }
+                    when (response.status) {
+                        HttpStatusCode.OK -> {
+                            val sessions = response.receive<List<Session?>>()
+                            sessions.forEach {
+                                bot.sendMsg(
+                                    chatId = callbackQuery.from.id,
+                                    text = it.toString(),
+                                    buttons = buttons.getButtons(ButtonsType.LOBBY_BUTTONS)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
