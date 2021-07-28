@@ -1,7 +1,7 @@
 rootProject.name = "secret-santa"
 
 include("site")
-include("game-logic")
 include("rest")
+include("shared-models")
 include("telegram-bot")
 
