@@ -1,7 +1,6 @@
 package ru.tinkoff.santa.rest.user_session
 
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.statements.UpdateBuilder
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -22,6 +21,13 @@ class UserSessionDao(private val database: Database) {
 
     fun getBySessionId(sessionId: Int): List<UserSession> = transaction(database) {
         UsersSessions.select { UsersSessions.sessionId eq sessionId }.map(::extractUserSession)
+    }
+
+    fun getByUserIdAndSessionId(userId: Int, sessionId: Int): UserSession? = transaction(database) {
+        runCatching {
+            extractUserSession(UsersSessions.select { (UsersSessions.userId eq userId) and (UsersSessions.sessionId eq sessionId) }
+                .first())
+        }.getOrNull()
     }
 
     fun create(userId: Int, sessionId: Int) = transaction(database) {

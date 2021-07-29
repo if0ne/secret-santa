@@ -9,7 +9,8 @@ class UserSessionService(private val userSessionDao: UserSessionDao) {
 
     fun getBySessionId(sessionId: Int): List<UserSession> = userSessionDao.getBySessionId(sessionId)
 
-
+    fun getByUserIdAndSessionId(userId: Int, sessionId: Int): UserSession? =
+        userSessionDao.getByUserIdAndSessionId(userId, sessionId)
 
     fun create(userId: Int, sessionId: Int) = userSessionDao.create(userId, sessionId)
 

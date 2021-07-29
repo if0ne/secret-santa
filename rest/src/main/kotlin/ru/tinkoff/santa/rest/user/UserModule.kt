@@ -13,7 +13,6 @@ import ru.tinkoff.santa.rest.user.authentication.AuthenticationController
 import ru.tinkoff.santa.rest.user.exception.UserNotFoundException
 import ru.tinkoff.santa.rest.user.registration.RegistrationController
 import ru.tinkoff.santa.rest.user.registration.RegistrationController.Companion.isPasswordSafety
-import java.lang.IllegalArgumentException
 
 fun Application.userModule() {
     val userService: UserService by closestDI().instance()
@@ -22,11 +21,6 @@ fun Application.userModule() {
     val userController: UserController by closestDI().instance()
 
     routing {
-        route("hello") {
-            get {
-                call.respondText("Hello")
-            }
-        }
         route("/user") {
             route("/authorization") {
                 post {
