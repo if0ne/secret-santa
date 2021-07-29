@@ -161,6 +161,7 @@ class Application : RComponent<AppProps, AppState>() {
                             route("/games", strict = true) {
                                 child(GameList::class) {
                                     attrs.user = state.cachedUser!!
+                                    attrs.gameList = listOf()
                                     //TODO: ПОЛУЧИТЬ СПИСОК ВСЕХ ИГР ДЛЯ ПОЛЬЗОВАТЕЛЯ
                                 }
                             }

@@ -131,7 +131,7 @@ class Signup: RComponent<RProps, SignupState>() {
                         type = components.basic.InputType.DEFAULT
                         id = "LastName"
 
-                        error = "Заполните поле"
+                        //error = "Заполните поле"
 
                         validation = {
                             it.isNotEmpty()
