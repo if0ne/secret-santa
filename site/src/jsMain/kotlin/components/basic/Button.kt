@@ -11,7 +11,8 @@ import styled.styledButton
 enum class ButtonColor(val hex: String) {
     ORANGE("#D9765F"),
     DARK("#322C40"),
-    RED("#730217")
+    RED("#730217"),
+    GREEN("#87A668")
 }
 
 enum class ButtonType {

@@ -51,11 +51,11 @@ class Signup: RComponent<RProps, SignupState>() {
                     }
 
                     santaInput {
-                        label = "Имя"
+                        label = "Имя *"
                         type = components.basic.InputType.DEFAULT
                         id = "FirstName"
 
-                        error = "Заполните поле"
+                        //error = "Заполните поле"
 
                         validation = {
                             it.isNotEmpty()
@@ -95,7 +95,7 @@ class Signup: RComponent<RProps, SignupState>() {
                     }
 
                     santaInput {
-                        label = "E-mail"
+                        label = "E-mail *"
                         type = components.basic.InputType.EMAIL
                         id = "Email"
 
@@ -127,7 +127,7 @@ class Signup: RComponent<RProps, SignupState>() {
                     }
 
                     santaInput {
-                        label = "Фамилия"
+                        label = "Фамилия *"
                         type = components.basic.InputType.DEFAULT
                         id = "LastName"
 
@@ -151,7 +151,7 @@ class Signup: RComponent<RProps, SignupState>() {
                     }
 
                     santaInput {
-                        label = "Номер телефона"
+                        label = "Номер телефона *"
                         type = components.basic.InputType.DEFAULT
                         id = "Phone"
 
@@ -177,7 +177,7 @@ class Signup: RComponent<RProps, SignupState>() {
                     }
 
                     santaInput {
-                        label = "Пароль"
+                        label = "Пароль *"
                         type = components.basic.InputType.PASSWORD
                         id = "Password"
 
@@ -211,6 +211,10 @@ class Signup: RComponent<RProps, SignupState>() {
                 styledDiv {
                     css {
                         classes = mutableListOf("col-6")
+                    }
+
+                    styledP {
+                        +"* - обязательные поля"
                     }
 
                     santaButton {
