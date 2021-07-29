@@ -13,9 +13,19 @@ import styled.styledDiv
 import styled.styledP
 import styled.styledSpan
 
-class GameList: RComponent<RProps,RState>() {
+external interface GameListProps: RProps {
+    //var user: User
+    //var gameList: List<Session>
+}
 
-    private fun RBuilder.gameLi(id: String): ReactElement {
+data class GameListState(
+    var gameId: String,
+): RState
+
+class GameList: RComponent<GameListProps, GameListState>() {
+
+    //TODO: СДЕЛАТЬ ВЫВОД ИНФОРМАЦИИ О СЕССИИ
+    private fun RBuilder.gameLi(id: String /*session: Session*/): ReactElement {
         return styledDiv {
             css {
                 classes = mutableListOf("card", "w-75", "mx-auto")
@@ -85,6 +95,10 @@ class GameList: RComponent<RProps,RState>() {
                     type = components.basic.InputType.DEFAULT
                     id = "search"
                     placeholder = "Введите код игры"
+
+                    onChange = { value, _ ->
+                        setState(GameListState(value))
+                    }
                 }
             }
 
@@ -98,6 +112,10 @@ class GameList: RComponent<RProps,RState>() {
                     disabled = false
                     color = ButtonColor.ORANGE
                     buttonType = ButtonType.FULL_WIDTH
+
+                    onClick = {
+                        //TODO: ПОПЫТКА ВХОДА В ИГРУ С ИДЕНТИФИКАТОРОМ gameId
+                    }
                 }
             }
 
@@ -118,6 +136,7 @@ class GameList: RComponent<RProps,RState>() {
             }
         }
 
+        //TODO: ВЫВОД ИГР
         gameLi("5")
         gameLi("6")
     }

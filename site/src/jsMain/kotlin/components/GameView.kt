@@ -4,17 +4,25 @@ import components.basic.*
 import kotlinx.css.*
 import react.*
 import react.dom.attrs
-import react.dom.h5
 import react.dom.p
 import styled.*
 
 external interface GameViewProps: RProps {
+    //var user: User
+    //var session: Session
+    //var gifts: List<Gifts>
     var isStarted: Boolean
     var gameId: String
     var isHost: Boolean
 }
 
-data class GameViewState(var isNewGift: Boolean, var gifts: MutableList<Pair<String, String>>): RState
+data class GameViewState(
+    var isNewGift: Boolean,
+    var gifts: MutableList<Pair<String, String>>,
+
+    var giftName: Pair<String, Boolean>,
+    var giftDesc: String
+): RState
 
 class GameView: RComponent<GameViewProps, GameViewState>() {
 
@@ -25,7 +33,8 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
         state.gifts.add(Pair("Кровь, пот и пиксели", "Та самая книжка про кранчи в геймдеве"))
     }
 
-    private fun RBuilder.memberCard(fi: String): ReactElement {
+    //TODO: СДЕЛАТЬ ВЫВОД ИНФОРМАЦИИ ОБ ИГРОКЕ
+    private fun RBuilder.memberCard(fi: String /*user: User*/): ReactElement {
         return styledDiv {
             css {
                 classes = mutableListOf("col")
@@ -63,6 +72,10 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                             text = "Удалить"
                             color = ButtonColor.RED
                             buttonType = ButtonType.FULL_WIDTH
+
+                            onClick = {
+                                //TODO: POST-запрос с удалением участника
+                            }
                         }
                     }
                 }
@@ -70,7 +83,8 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
         }
     }
 
-    private fun RBuilder.giftCard(name: String, desc: String): ReactElement {
+    //TODO: СДЕЛАТЬ ВЫВОДИ ИНФОРМАЦИИ О ПОДАРКЕ
+    private fun RBuilder.giftCard(name: String, desc: String /* gift: Gift*/): ReactElement {
         return styledDiv {
             css {
                 classes = mutableListOf("col")
@@ -99,6 +113,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
         }
     }
 
+    //TODO: ВЫВОД ИНФОРМАЦИИ ОБ ИГРЕ
     private fun RBuilder.gameInfo(): ReactElement {
         return styledDiv {
             css {
@@ -120,6 +135,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                 }
                 +"Дата мероприятия: 25.12.2021"
             }
+
             styledP {
                 +"Средняя цена подарка: "
                 styledSpan {
@@ -132,6 +148,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
         }
     }
 
+    //TODO: ВЫВОД ИНФОРМАЦИИ ОБ ИГРЕ И ТВОИХ ПОЖЕЛАНИЙ
     private fun RBuilder.unstartedGame(): ReactElement {
         return styledDiv {
             //ИНФА
@@ -196,11 +213,35 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                         label = "Название"
                         id = "gift_name"
                         type = InputType.DEFAULT
+
+                        error = "Заполните это поле"
+
+                        validation = {
+                            it.isNotEmpty()
+                        }
+
+                        onChange = { value, valid ->
+                            setState(GameViewState(
+                                state.isNewGift,
+                                state.gifts,
+                                Pair(value, valid),
+                                state.giftDesc
+                            ))
+                        }
                     }
 
                     santaTextArea {
                         label = "Описание"
                         id = "gift_desc"
+
+                        onChange = { value ->
+                            setState(GameViewState(
+                                state.isNewGift,
+                                state.gifts,
+                                state.giftName,
+                                value
+                            ))
+                        }
                     }
                 }
             }
@@ -220,7 +261,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                         buttonType = ButtonType.WIDTH_WITH_MARGIN
 
                         onClick = {
-                            setState(GameViewState(!state.isNewGift,state.gifts))
+                            setState(GameViewState(!state.isNewGift, state.gifts, state.giftName, state.giftDesc))
                         }
                     }
                 }
@@ -238,9 +279,11 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                             buttonType = ButtonType.WIDTH_WITH_MARGIN
 
                             onClick = {
-                                val newGifts = state.gifts
-                                newGifts.add(Pair("Новый подарок","Пока не парсится, что ввели"))
-                                setState(GameViewState(!state.isNewGift,newGifts))
+                                if (state.giftName.second) {
+                                    val newGifts = state.gifts
+                                    newGifts.add(Pair(state.giftName.first, state.giftDesc))
+                                    setState(GameViewState(!state.isNewGift,newGifts, state.giftName, state.giftDesc))
+                                }
                             }
                         }
                     }
@@ -261,6 +304,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     classes = mutableListOf("row","row-cols-1","row-cols-md-4","g-4")
                 }
 
+                //TODO: ВЫВОДИ УЧАСТНИКОВ
                 memberCard("Асташкин Максим")
                 memberCard("Асташкин Максим")
                 memberCard("Асташкин Максим")
@@ -274,6 +318,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
         }
     }
 
+    //TODO: ВЫВОД  ИНФОРАЦИИ КОМУ ТЫ ДАРИШЬ ПОДАРОК
     private fun RBuilder.startedGame(): ReactElement {
         return styledDiv {
             styledDiv {

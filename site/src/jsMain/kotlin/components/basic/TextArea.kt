@@ -1,10 +1,10 @@
 package components.basic
 
-import kotlinx.css.Color
-import kotlinx.css.color
 import kotlinx.html.id
 import kotlinx.html.js.onChangeFunction
+import kotlinx.html.onChange
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLTextAreaElement
 import react.*
 import react.dom.attrs
 import styled.*
@@ -12,18 +12,13 @@ import styled.*
 external interface TextAreaProps: RProps {
     var id: String
     var label: String?
-    var error: String?
 
-    var validation: ((String) -> Boolean)?
+    var onChange: ((String) -> Unit)?
 }
 
-data class TextAreaState(var isRight: Boolean, val value: String): RState
+data class TextAreaState(val value: String): RState
 
 class TextArea : RComponent<TextAreaProps,TextAreaState>() {
-
-    init {
-        state.isRight = true
-    }
 
     override fun RBuilder.render() {
         styledDiv {
@@ -46,23 +41,10 @@ class TextArea : RComponent<TextAreaProps,TextAreaState>() {
                 attrs {
                     id = props.id
                     onChangeFunction = {
-                        val value = (it.target as HTMLInputElement).value
-                        val valid =  if (props.validation != null) props.validation!!(value) else state.isRight
-                        setState(TextAreaState(valid, value))
+                        val value = (it.target as HTMLTextAreaElement).value
+                        props.onChange?.let { it(value) }
+                        setState(TextAreaState(value))
                     }
-                }
-            }
-            if (!state.isRight) {
-                styledLabel {
-                    css {
-                        classes = mutableListOf("form-text")
-                        color = Color("#8C1F1F")
-                    }
-                    attrs {
-                        id = props.id
-                    }
-
-                    +(props.error ?: "")
                 }
             }
         }

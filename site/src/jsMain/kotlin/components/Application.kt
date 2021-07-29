@@ -5,7 +5,6 @@ import components.basic.ButtonType
 import components.basic.santaButton
 import kotlinx.css.*
 import kotlinx.css.properties.TextDecoration
-import kotlinx.html.RP
 
 import react.RBuilder
 import react.RComponent
@@ -26,7 +25,6 @@ interface GameId : RProps {
     var id: Int
 }
 
-@JsExport
 class Application : RComponent<AppProps, AppState>() {
 
     private fun RBuilder.link(href: String, text: String) {
@@ -81,7 +79,7 @@ class Application : RComponent<AppProps, AppState>() {
                     }
 
                     routeLink("/login") {
-                        santaButton() {
+                        santaButton {
                             text = "Создать"
                             disabled = false
                             color = ButtonColor.ORANGE
@@ -142,6 +140,7 @@ class Application : RComponent<AppProps, AppState>() {
                                             "https://sun9-47.userapi.com/impf/c848624/v848624074/19f3bb/9e6Trlyf1o4.jpg?size=2560x1707&quality=96&sign=cc31343bd89d4700186721803dbb97da&type=album",
                                             null
                                         )*/
+                                        //TODO: ЗАПРОС НА ВХОД
                                         setState(AppState(true, cachedUser))
                                     }
                                 }
