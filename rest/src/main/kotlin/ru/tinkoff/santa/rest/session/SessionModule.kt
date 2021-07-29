@@ -12,6 +12,8 @@ import ru.tinkoff.sanata.shared_models.request.CreateSessionRequest
 import ru.tinkoff.sanata.shared_models.request.JoinByGuidRequest
 import ru.tinkoff.sanata.shared_models.request.JoinRequest
 import ru.tinkoff.sanata.shared_models.request.LeaveRequest
+import ru.tinkoff.sanata.shared_models.response.SessionInfoResponse
+import ru.tinkoff.santa.rest.gift.GiftService
 import ru.tinkoff.santa.rest.user.UserService
 import ru.tinkoff.santa.rest.user_session.UserSessionService
 import ru.tinkoff.santa.rest.user_session_gift.UserSessionGiftService
@@ -22,6 +24,7 @@ import java.util.*
 fun Application.sessionModule() {
     val userService: UserService by closestDI().instance()
     val sessionService: SessionService by closestDI().instance()
+    val giftService: GiftService by closestDI().instance()
     val userSessionService: UserSessionService by closestDI().instance()
     val userSessionGiftService: UserSessionGiftService by closestDI().instance()
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
@@ -32,7 +35,7 @@ fun Application.sessionModule() {
                 post {
                     val request = call.receive<CreateSessionRequest>()
                     val hostId = request.hostId
-                    var id: Int = 0
+                    var id = 0
                     if (hostId != null) {
                         id = hostId
                     } else {
@@ -109,6 +112,26 @@ fun Application.sessionModule() {
                 }
             }
 
+            route("/{id}") {
+                get {
+                    val sessionId = call.parameters["id"]?.toInt()
+                    if (sessionId != null) {
+                        val sessionInfoResponse = SessionInfoResponse(
+                            sessionService.getById(sessionId)!!,
+                            userSessionService.getBySessionId(sessionId).map {
+                                Pair(
+                                    userService.getById(it.userId)!!,
+                                    userSessionGiftService.getByUserSessionId(it.id).map { userSessionGift ->
+                                        giftService.getById(userSessionGift.giftId)!!
+                                    }
+                                )
+                            }
+                        )
+                        call.respond(HttpStatusCode.OK, sessionInfoResponse)
+                    }
+                }
+            }
+
             route("/user/{id}") {
                 get {
                     call.respond(HttpStatusCode.OK, userSessionService.getByUserId(call.parameters["id"]!!.toInt()))
@@ -120,14 +143,26 @@ fun Application.sessionModule() {
                     val user = userService.getByTelegramId(call.parameters["id"]!!.toLong())
                     if (user != null) {
                         val userSession = userSessionService.getByUserId(user.id)
-                        val sessions = userSession.map {
-                            sessionService.getById(it.sessionId)
+                        val sessionInfoResponse = userSession.groupBy {
+                            it.sessionId
+                        }.map {
+                            SessionInfoResponse(
+                                sessionService.getById(it.key)!!,
+                                it.value.map { userSession ->
+                                    Pair(
+                                        userService.getById(userSession.userId)!!,
+                                        userSessionGiftService.getByUserSessionId(userSession.id)
+                                            .map { userSessionGift ->
+                                                giftService.getById(userSessionGift.giftId)!!
+                                            }
+                                    )
+                                }
+                            )
                         }
-                        call.respond(HttpStatusCode.OK, sessions)
+                        call.respond(HttpStatusCode.OK, sessionInfoResponse)
                     }
                 }
             }
         }
     }
-
 }
