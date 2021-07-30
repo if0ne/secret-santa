@@ -6,16 +6,26 @@ import components.basic.santaButton
 import components.basic.santaInput
 import kotlinx.css.*
 import react.*
-import react.dom.p
 import react.router.dom.routeLink
+import shared_models.model.Session
+import shared_models.model.User
 import styled.css
 import styled.styledDiv
 import styled.styledP
 import styled.styledSpan
 
-class GameList: RComponent<RProps,RState>() {
+external interface GameListProps: RProps {
+    var user: User
+    var gameList: List<Session>
+}
 
-    private fun RBuilder.gameLi(id: String): ReactElement {
+data class GameListState(
+    var gameId: String,
+): RState
+
+class GameList: RComponent<GameListProps, GameListState>() {
+
+    private fun RBuilder.gameLi(session: Session): ReactElement {
         return styledDiv {
             css {
                 classes = mutableListOf("card", "w-75", "mx-auto")
@@ -31,19 +41,20 @@ class GameList: RComponent<RProps,RState>() {
                         fontWeight = FontWeight.bold
                         fontSize = (1.25).rem
                     }
-                    +"Игра $id"
+                    +"Игра ${session.id}"
                 }
                 styledP {
                     css {
                         margin = "0"
                     }
+                    //TODO: ПОЛУЧИТЬ КОЛИЧЕСТВО УЧАСТНИКОВ
                     +"Количество участников: 8"
                 }
                 styledP {
                     css {
                         margin = "0"
                     }
-                    +"Дата мероприятия: 25.12.2021"
+                    +"Дата мероприятия: ${session.eventTimestamp}"
                 }
                 styledP {
                     +"Средняя цена подарка: "
@@ -51,14 +62,14 @@ class GameList: RComponent<RProps,RState>() {
                         css {
                             fontWeight = FontWeight.bold
                         }
-                        +"1000₽"
+                        +"${session.budget}₽"
                     }
                 }
                 styledDiv {
                     css {
                         float = Float.right
                     }
-                    routeLink("/game/$id") {
+                    routeLink("/game/${session.id}") {
                         santaButton {
                             text = "Подробнее"
 
@@ -85,6 +96,10 @@ class GameList: RComponent<RProps,RState>() {
                     type = components.basic.InputType.DEFAULT
                     id = "search"
                     placeholder = "Введите код игры"
+
+                    onChange = { value, _ ->
+                        setState(GameListState(value))
+                    }
                 }
             }
 
@@ -98,6 +113,10 @@ class GameList: RComponent<RProps,RState>() {
                     disabled = false
                     color = ButtonColor.ORANGE
                     buttonType = ButtonType.FULL_WIDTH
+
+                    onClick = {
+                        //TODO: ПОПЫТКА ВХОДА В ИГРУ С ИДЕНТИФИКАТОРОМ gameId
+                    }
                 }
             }
 
@@ -118,7 +137,8 @@ class GameList: RComponent<RProps,RState>() {
             }
         }
 
-        gameLi("5")
-        gameLi("6")
+        props.gameList.forEach {
+            gameLi(it)
+        }
     }
 }

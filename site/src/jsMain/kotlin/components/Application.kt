@@ -5,7 +5,6 @@ import components.basic.ButtonType
 import components.basic.santaButton
 import kotlinx.css.*
 import kotlinx.css.properties.TextDecoration
-import kotlinx.html.RP
 
 import react.RBuilder
 import react.RComponent
@@ -13,6 +12,7 @@ import react.RProps
 import react.RState
 import react.dom.*
 import react.router.dom.*
+import shared_models.model.User
 import styled.*
 import styled.styledDiv
 
@@ -20,13 +20,12 @@ external interface AppProps: RProps {
 
 }
 
-data class AppState(var logged: Boolean, var cachedUser: String) : RState
+data class AppState(var logged: Boolean, var cachedUser: User?) : RState
 
 interface GameId : RProps {
     var id: Int
 }
 
-@JsExport
 class Application : RComponent<AppProps, AppState>() {
 
     private fun RBuilder.link(href: String, text: String) {
@@ -81,7 +80,7 @@ class Application : RComponent<AppProps, AppState>() {
                     }
 
                     routeLink("/login") {
-                        santaButton() {
+                        santaButton {
                             text = "Создать"
                             disabled = false
                             color = ButtonColor.ORANGE
@@ -130,9 +129,9 @@ class Application : RComponent<AppProps, AppState>() {
                             route("/login", strict = true) {
                                 child(Login::class) {
                                     attrs.logginCallback = {
-                                        val cachedUser = "Maksim" /*User(
+                                        val cachedUser = User(
                                             1,
-                                            null,
+                                            "64564",
                                             "Gay Boy",
                                             "maksim.astash@gmail.com",
                                             ByteArray(0),
@@ -140,8 +139,9 @@ class Application : RComponent<AppProps, AppState>() {
                                             "Асташкин",
                                             "Сергеевич",
                                             "https://sun9-47.userapi.com/impf/c848624/v848624074/19f3bb/9e6Trlyf1o4.jpg?size=2560x1707&quality=96&sign=cc31343bd89d4700186721803dbb97da&type=album",
-                                            null
-                                        )*/
+                                            75674
+                                        )
+                                        //TODO: ЗАПРОС НА ВХОД
                                         setState(AppState(true, cachedUser))
                                     }
                                 }
@@ -152,26 +152,28 @@ class Application : RComponent<AppProps, AppState>() {
                         } else {
                             route("/", exact = true) {
                                 child(Profile::class) {
-                                    attrs.user = state.cachedUser
+                                    attrs.user = state.cachedUser!!
                                     attrs.logoutCallback = {
-                                        setState(AppState(false, ""))
+                                        setState(AppState(false, null))
                                     }
                                 }
                             }
                             route("/games", strict = true) {
-                                child(GameList::class) {}
+                                child(GameList::class) {
+                                    attrs.user = state.cachedUser!!
+                                    attrs.gameList = listOf()
+                                    //TODO: ПОЛУЧИТЬ СПИСОК ВСЕХ ИГР ДЛЯ ПОЛЬЗОВАТЕЛЯ
+                                }
                             }
                             route("/create_game", strict = true) {
-                                child(GameCreation::class) {}
-                            }
-                            route("/create_game", strict = true) {
-                                child(GameCreation::class) {}
+                                child(GameCreation::class) {
+                                    attrs.user = state.cachedUser!!
+                                }
                             }
                             route<GameId>("/game/:id") {
                                 child(GameView::class) {
-                                    attrs.gameId = "${it.match.params.id}"
-                                    attrs.isStarted = "${it.match.params.id}" == "5"
-                                    attrs.isHost = true
+                                    attrs.user = state.cachedUser!!
+                                    //TODO: Получение сессии и доп. инфы
                                 }
                             }
                         }

@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("multiplatform") version "1.4.32"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.5.21"
     application
     //kotlin("jvm") version "1.5.30-M1"
 }
@@ -74,6 +75,7 @@ kotlin {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-styled:5.3.0-pre.216-kotlin-1.5.20")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-ring-ui:4.0.21-pre.216-kotlin-1.5.20")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom:5.2.0-pre.216-kotlin-1.5.20")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
             }
         }
         val jsTest by getting {

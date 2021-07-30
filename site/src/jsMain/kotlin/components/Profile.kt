@@ -9,6 +9,7 @@ import org.w3c.dom.events.Event
 import react.*
 import react.dom.attrs
 import react.router.dom.routeLink
+import shared_models.model.User
 import styled.css
 import styled.styledDiv
 import styled.styledImg
@@ -40,12 +41,12 @@ fun RBuilder.buildImage(href: String): ReactElement {
 }
 
 external interface ProfileProps: RProps {
-    var user: String
+    var user: User
 
     var logoutCallback: (Event) -> Unit
 }
 
-data class ProfileState(var isEditTelegram: Boolean): RState
+data class ProfileState(var isEditTelegram: Boolean, var telegramCode: String): RState
 
 class Profile: RComponent<ProfileProps, ProfileState>() {
 
@@ -66,7 +67,7 @@ class Profile: RComponent<ProfileProps, ProfileState>() {
             css {
                 classes = mutableListOf("row")
             }
-            buildImage(/*props.user.avatarUrl ?: */"https://sun9-76.userapi.com/impg/TGQS7CIdiA7adC4PdmwiYXYbfaDXkhlRi11DRA/PmcveX_CFfY.jpg?size=1080x698&quality=96&sign=1421d6e98144995f9a6ea914a4cb2d79&type=album")
+            buildImage(props.user.avatarUrl ?: "")
             styledDiv {
                 css {
                     classes = mutableListOf("col-8")
@@ -78,16 +79,14 @@ class Profile: RComponent<ProfileProps, ProfileState>() {
                         fontSize = (1.25).rem
                         margin = "0"
                     }
-                    +"Асташкин Максим Сергеевич"
-                    //+"${props.user.lastName} ${props.user.firstName} ${props.user.middleName ?: ""}"
+                    +"${props.user.lastName} ${props.user.firstName} ${props.user.middleName ?: ""}"
                 }
 
                 styledP {
                     css {
                         margin = "0"
                     }
-                    +"maksim.astash@gmail.com"
-                    //+props.user.email
+                    +props.user.email
                 }
 
                 styledDiv {
@@ -109,13 +108,13 @@ class Profile: RComponent<ProfileProps, ProfileState>() {
                         }
 
                         santaButton {
-                            color = ButtonColor.DARK
-                            text = "Telegram"
-                            disabled = false
+                            color = if (props.user.telegramId != null) ButtonColor.GREEN else ButtonColor.DARK
+                            text = if (props.user.telegramId != null) "Telegram подключен" else "Telegram"
+                            disabled = props.user.telegramId != null
                             buttonType = ButtonType.WIDTH_WITH_MARGIN
 
                             onClick = {
-                                setState(ProfileState(!state.isEditTelegram))
+                                setState(ProfileState(!state.isEditTelegram, ""))
                             }
                         }
                     }
@@ -168,12 +167,22 @@ class Profile: RComponent<ProfileProps, ProfileState>() {
                     santaInput {
                         type = components.basic.InputType.DEFAULT
                         id = "code"
+
+                        validation = null
+
+                        onChange = { value, _ ->
+                            setState(ProfileState(state.isEditTelegram, value))
+                        }
                     }
                     santaButton {
                         color = ButtonColor.ORANGE
                         text = "Связать"
                         disabled = false
                         buttonType = ButtonType.WIDTH_WITH_MARGIN
+
+                        onClick = {
+                            //TODO: ЗАПРОС НА СВЯЗЫВАНИЕ
+                        }
                     }
                 }
             }

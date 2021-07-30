@@ -22,7 +22,12 @@ external interface LoginProps: RProps {
     var logginCallback: (Event) -> Unit
 }
 
-class Login: RComponent<LoginProps, RState>() {
+data class LoginState(
+    var login: String,
+    var password: String,
+): RState
+
+class Login: RComponent<LoginProps, LoginState>() {
 
     override fun RBuilder.render() {
 
@@ -42,12 +47,24 @@ class Login: RComponent<LoginProps, RState>() {
                 label = "E-mail"
                 type = components.basic.InputType.EMAIL
                 id = "email"
+
+                validation = null
+
+                onChange = { value, _ ->
+                    setState(LoginState(value, state.password))
+                }
             }
 
             santaInput {
                 label = "Пароль"
                 type = components.basic.InputType.PASSWORD
                 id = "password"
+
+                validation = null
+
+                onChange = { value, _ ->
+                    setState(LoginState(state.login, value))
+                }
             }
 
             santaButton {
@@ -56,6 +73,7 @@ class Login: RComponent<LoginProps, RState>() {
                 disabled = false
                 buttonType = ButtonType.SUBMIT
 
+                //TODO: ПЕРЕДАВАТЬ РОДИТЕЛЮ ЛОГИН И ПАРОЛЬ
                 onClick = props.logginCallback
             }
             br {}
