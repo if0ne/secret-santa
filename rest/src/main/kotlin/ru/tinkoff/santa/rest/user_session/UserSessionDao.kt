@@ -23,6 +23,13 @@ class UserSessionDao(private val database: Database) {
         UsersSessions.select { UsersSessions.sessionId eq sessionId }.map(::extractUserSession)
     }
 
+    fun getByUserIdAndSessionId(userId: Int, sessionId: Int): UserSession? = transaction(database) {
+        runCatching {
+            extractUserSession(UsersSessions.select { (UsersSessions.userId eq userId) and (UsersSessions.sessionId eq sessionId) }
+                .first())
+        }.getOrNull()
+    }
+
     fun create(userId: Int, sessionId: Int) = transaction(database) {
         UsersSessions.insert {
             wrapUserSessionToUpdateBuilder(it, userId, sessionId)
