@@ -31,6 +31,12 @@ fun Application.sessionModule() {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
     routing {
+        route("/start/{id}") {
+            get {
+                sessionController.start(call.parameters["id"]!!.toInt())
+            }
+        }
+
         route("/session") {
             route("/create") {
                 post {
@@ -45,6 +51,7 @@ fun Application.sessionModule() {
                             it.budget,
                             LocalDateTime.parse(it.eventDateTime, formatter),
                             LocalDateTime.parse(it.dateTimeToChoose, formatter),
+                            it.minPlayersQuantity
                         )
                         call.respond(HttpStatusCode.Created)
                     }.onFailure {

@@ -10,5 +10,13 @@ class SessionComponents
 fun DI.Builder.sessionComponents() {
     bind<SessionDao>() with singleton { SessionDao(instance()) }
     bind<SessionService>() with singleton { SessionService(instance()) }
-    bind<SessionController>() with singleton { SessionController(instance(), instance(), instance(), instance()) }
+    bind<SessionController>() with singleton {
+        SessionController(
+            instance(),
+            instance(),
+            instance(),
+            instance(),
+            instance()
+        )
+    }
 }

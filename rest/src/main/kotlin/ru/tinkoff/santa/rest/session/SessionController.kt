@@ -3,6 +3,7 @@ package ru.tinkoff.santa.rest.session
 import ru.tinkoff.sanata.shared_models.model.Session
 import ru.tinkoff.sanata.shared_models.model.SessionState
 import ru.tinkoff.sanata.shared_models.model.User
+import ru.tinkoff.santa.rest.gift_giving.GiftGivingService
 import ru.tinkoff.santa.rest.user.UserService
 import ru.tinkoff.santa.rest.user_session.UserSessionService
 import ru.tinkoff.santa.rest.user_session_gift.UserSessionGiftService
@@ -13,7 +14,8 @@ class SessionController(
     private val sessionService: SessionService,
     private val userService: UserService,
     private val userSessionService: UserSessionService,
-    private val userSessionGiftService: UserSessionGiftService
+    private val userSessionGiftService: UserSessionGiftService,
+    private val giftGivingService: GiftGivingService
 ) {
     fun create(
         description: String?,
@@ -22,21 +24,32 @@ class SessionController(
         budget: Int,
         eventDateTime: LocalDateTime,
         dateTimeToChoose: LocalDateTime,
-        minPlayersQuantity: Int = 3
+        minPlayersQuantity: Int?
     ) {
         val userId = userService.getRealUserId(hostId, hostTelegramId)
         if (userService.getById(userId) == null) {
             throw Exception()
         }
-        sessionService.create(
-            SessionState.LOBBY,
-            description,
-            userId,
-            budget,
-            eventDateTime,
-            dateTimeToChoose,
-            minPlayersQuantity
-        )
+        if (minPlayersQuantity == null) {
+            sessionService.create(
+                SessionState.LOBBY,
+                description,
+                userId,
+                budget,
+                eventDateTime,
+                dateTimeToChoose
+            )
+        } else {
+            sessionService.create(
+                SessionState.LOBBY,
+                description,
+                userId,
+                budget,
+                eventDateTime,
+                dateTimeToChoose,
+                minPlayersQuantity
+            )
+        }
         userSessionService.create(
             userId,
             sessionService.getByHostId(userId).last().id
@@ -46,13 +59,18 @@ class SessionController(
     fun start(sessionId: Int) {
         val session = sessionService.getById(sessionId)
         if (session != null) {
+            if (session.currentState != SessionState.LOBBY) {
+                throw Exception()
+            }
             if (getUsersNumberInSession(sessionId) < session.minPlayersQuantity) {
                 throw Exception()
             }
-            val users = getUsersInSession(sessionId)
-            users.shuffled().map {
-
+            var users = getUsersInSession(sessionId).shuffled()
+            giftGivingService.create(sessionId, users.last().id, users.first().id)
+            for (i in 1 until users.size) {
+                giftGivingService.create(sessionId, users[i - 1].id, users[i].id)
             }
+            sessionService.setCurrentState(session.id, SessionState.GAME)
         } else {
             throw Exception()
         }
@@ -96,7 +114,7 @@ class SessionController(
         }
     }
 
-    fun getUsersInSession(sessionId: Int): List<User> {
+    private fun getUsersInSession(sessionId: Int): List<User> {
         if (sessionService.getById(sessionId) == null) {
             throw Exception()
         }
