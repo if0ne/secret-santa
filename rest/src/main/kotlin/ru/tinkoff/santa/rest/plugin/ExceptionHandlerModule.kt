@@ -7,7 +7,6 @@ import io.ktor.response.*
 import ru.tinkoff.santa.rest.user.authentication.AuthenticationException
 import ru.tinkoff.santa.rest.user.exception.UserNotFoundException
 import ru.tinkoff.santa.rest.user.registration.RegistrationException
-import java.lang.IllegalArgumentException
 
 fun Application.exceptionHandlerModule() {
     install(StatusPages) {
@@ -22,6 +21,9 @@ fun Application.exceptionHandlerModule() {
         }
         exception<UserNotFoundException> {
             call.respond(HttpStatusCode.NotFound)
+        }
+        exception<Exception> {
+            call.respondText { "Что-то не так, потом добавлю экзепшны" }
         }
     }
 }

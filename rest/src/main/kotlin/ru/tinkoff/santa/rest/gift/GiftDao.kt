@@ -16,11 +16,11 @@ class GiftDao(private val database: Database) {
         }.getOrNull()
     }
 
-    fun create(pictureUrl: String?, name: String, description: String?): Int = transaction(database) {
-        Gifts.insertAndGetId {
+    fun create(pictureUrl: String?, name: String, description: String?): Gift = transaction(database) {
+        Gift(Gifts.insertAndGetId {
             wrapGiftToUpdateBuilder(it, pictureUrl, name, description)
-        }
-    }.value
+        }.value, null, name, description)
+    }
 
     fun update(id: Int, pictureUrl: String?, name: String, description: String?) = transaction(database) {
         Gifts.update({ Gifts.id eq id }) {

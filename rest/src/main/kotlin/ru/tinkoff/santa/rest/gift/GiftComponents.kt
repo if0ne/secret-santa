@@ -8,4 +8,5 @@ import org.kodein.di.singleton
 fun DI.Builder.giftComponents() {
     bind<GiftDao>() with singleton { GiftDao(instance()) }
     bind<GiftService>() with singleton { GiftService(instance()) }
+    bind<GiftController>() with singleton { GiftController(instance(), instance(), instance(), instance(), instance()) }
 }

@@ -71,15 +71,13 @@ fun Application.sessionModule() {
 
             route("/leave") {
                 delete {
-                    val request = call.receive<LeaveRequest>()
-                    val userSession = userSessionService.getByUserIdAndSessionId(request.userId, request.sessionId)
-                    if (userSession != null) {
-                        val userSessionGifts = userSessionGiftService.getByUserSessionId(userSession.id)
-                        userSessionGifts.forEach {
-                            userSessionGiftService.delete(it.id)
-                        }
-                        userSessionService.delete(userSession.id)
+                    runCatching {
+                        call.receive<LeaveRequest>()
+                    }.onSuccess {
+                        sessionController.leaveOnSession(it.userId, it.sessionId)
                         call.respond(HttpStatusCode.OK)
+                    }.onFailure {
+                        throw IllegalArgumentException()
                     }
                 }
             }
@@ -90,12 +88,13 @@ fun Application.sessionModule() {
                     if (sessionId != null) {
                         call.respond(HttpStatusCode.OK, sessionController.getUsersNumberInSession(sessionId))
                     } else {
-                        call.respond(HttpStatusCode.BadRequest)
+                        throw IllegalArgumentException()
                     }
                 }
             }
 
             route("/{id}") {
+                // Все переделать
                 get {
                     val sessionId = call.parameters["id"]?.toInt()
                     if (sessionId != null) {
@@ -121,7 +120,7 @@ fun Application.sessionModule() {
                     if (userId != null) {
                         call.respond(HttpStatusCode.OK, sessionController.getUserSessions(userId))
                     } else {
-                        call.respond(HttpStatusCode.BadRequest)
+                        throw IllegalArgumentException()
                     }
                 }
             }
