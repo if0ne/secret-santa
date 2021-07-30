@@ -55,4 +55,20 @@ CREATE TABLE users_sessions_gifts
     FOREIGN KEY (gift_id) REFERENCES gifts (id)
 );
 
+CREATE TABLE gift_giving
+(
+    id                     serial PRIMARY KEY,
+    session_id             integer NOT NULL,
+    gift_giving_user_id    integer NOT NULL,
+    gift_receiving_user_id integer NOT NULL,
+    FOREIGN KEY (session_id) REFERENCES sessions (id),
+    FOREIGN KEY (gift_giving_user_id) REFERENCES users (id),
+    FOREIGN KEY (gift_receiving_user_id) REFERENCES users (id)
+);
+
+CREATE TABLE guids
+(
+    telegram_guid uuid unique,
+    telegram_id   bigint unique
+);
 

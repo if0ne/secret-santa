@@ -10,13 +10,30 @@ class UserService(private val userDao: UserDao) {
 
     fun getByTelegramGuid(telegramGuid: UUID): User? = userDao.getByTelegramGuid(telegramGuid)
 
+    fun getRealUserId(id: Int?, telegramId: Long?): Int {
+        if (id != null) {
+            return id
+        }
+        if (telegramId != null) {
+            val user = getByTelegramId(telegramId)
+            if (user != null) {
+                return user.id
+            } else {
+                throw Exception()
+            }
+        } else {
+            throw Exception()
+        }
+    }
+
     fun getByEmail(email: String): User? = userDao.getByEmail(email)
 
     fun getByNickname(nickname: String): User? = userDao.getByNickname(nickname)
 
     fun getByTelegramId(telegramId: Long): User? = userDao.getByTelegramId(telegramId)
 
-    fun setTelegramId(userId: Int, telegramId: Long, telegramGuid: UUID) = userDao.setTelegramId(userId, telegramId, telegramGuid)
+    fun setTelegramId(userId: Int, telegramId: Long, telegramGuid: UUID) =
+        userDao.setTelegramId(userId, telegramId, telegramGuid)
 
     fun create(
         telegramGuid: UUID?,
