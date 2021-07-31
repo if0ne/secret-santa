@@ -15,4 +15,16 @@ class UserSessionGiftService(private val userSessionGiftDao: UserSessionGiftDao)
     fun update(id: Int, userSessionId: Int, giftId: Int) = userSessionGiftDao.update(id, userSessionId, giftId)
 
     fun delete(id: Int) = userSessionGiftDao.delete(id)
+
+    fun deleteByUserSession(userSessionId: Int) =
+        getByUserSessionId(userSessionId).forEach {
+            delete(it.id)
+        }
+
+    fun deleteByGift(giftId: Int) {
+        val userSessionGift = getByGiftId(giftId)
+        if (userSessionGift != null) {
+            delete(userSessionGift.id)
+        }
+    }
 }

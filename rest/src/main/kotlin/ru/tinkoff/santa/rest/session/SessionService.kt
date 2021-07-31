@@ -52,5 +52,7 @@ class SessionService(private val sessionDao: SessionDao) {
         dateTimeToChoose
     )
 
+    fun setCurrentState(sessionId: Int, state: SessionState) = sessionDao.setCurrentState(sessionId, state)
+
     fun delete(id: Int) = sessionDao.delete(id)
 }

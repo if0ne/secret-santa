@@ -7,7 +7,8 @@ class GiftService(private val giftDao: GiftDao) {
 
     fun getById(id: Int): Gift? = giftDao.getById(id)
 
-    fun create(pictureUrl: String?, name: String, description: String?) = giftDao.create(pictureUrl, name, description)
+    fun create(pictureUrl: String?, name: String, description: String?): Gift =
+        giftDao.create(pictureUrl, name, description)
 
     fun update(id: Int, pictureUrl: String?, name: String, description: String?) =
         giftDao.update(id, pictureUrl, name, description)

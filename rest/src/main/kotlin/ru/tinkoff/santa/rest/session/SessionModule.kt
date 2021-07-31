@@ -7,13 +7,12 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
-import ru.tinkoff.sanata.shared_models.model.SessionState
 import ru.tinkoff.sanata.shared_models.request.CreateSessionRequest
 import ru.tinkoff.sanata.shared_models.request.JoinByGuidRequest
-import ru.tinkoff.sanata.shared_models.request.JoinRequest
 import ru.tinkoff.sanata.shared_models.request.LeaveRequest
 import ru.tinkoff.sanata.shared_models.response.SessionInfoResponse
 import ru.tinkoff.santa.rest.gift.GiftService
+import ru.tinkoff.santa.rest.gift_giving.GiftGivingService
 import ru.tinkoff.santa.rest.user.UserService
 import ru.tinkoff.santa.rest.user_session.UserSessionService
 import ru.tinkoff.santa.rest.user_session_gift.UserSessionGiftService
@@ -27,92 +26,82 @@ fun Application.sessionModule() {
     val giftService: GiftService by closestDI().instance()
     val userSessionService: UserSessionService by closestDI().instance()
     val userSessionGiftService: UserSessionGiftService by closestDI().instance()
+    val giftGivingService: GiftGivingService by closestDI().instance()
+    val sessionController: SessionController by closestDI().instance()
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
     routing {
+        route("/start/{id}") {
+            get {
+                sessionController.start(call.parameters["id"]!!.toInt())
+            }
+        }
+
         route("/session") {
             route("/create") {
                 post {
-                    val request = call.receive<CreateSessionRequest>()
-                    val hostId = request.hostId
-                    var id = 0
-                    if (hostId != null) {
-                        id = hostId
-                    } else {
-                        val telegramHostId = request.hostTelegramId
-                        if (telegramHostId != null) {
-                            val user = userService.getByTelegramId(telegramHostId)
-                            if (user != null) {
-                                id = user.id
-                            }
-                        }
+                    // с датами переделать и исключения в контроллере
+                    runCatching {
+                        call.receive<CreateSessionRequest>()
+                    }.onSuccess {
+                        sessionController.create(
+                            it.description,
+                            it.hostId,
+                            it.hostTelegramId,
+                            it.budget,
+                            LocalDateTime.parse(it.eventDateTime, formatter),
+                            LocalDateTime.parse(it.dateTimeToChoose, formatter),
+                            it.minPlayersQuantity
+                        )
+                        call.respond(HttpStatusCode.Created)
+                    }.onFailure {
+                        throw IllegalArgumentException()
                     }
-                    sessionService.create(
-                        SessionState.LOBBY,
-                        request.description,
-                        id,
-                        request.budget,
-                        LocalDateTime.parse(request.eventDateTime, formatter),
-                        LocalDateTime.parse(request.dateTimeToChoose, formatter),
-                        request.minPlayersQuantity!!
-                    )
-                    userSessionService.create(
-                        id,
-                        sessionService.getByHostId(id).last().id
-                    )
-                    call.respond(HttpStatusCode.Created)
-                }
-            }
-
-            route("/join") {
-                post {
-                    val request = call.receive<JoinRequest>()
-                    userSessionService.create(request.userId, request.sessionId)
-                    call.respond(HttpStatusCode.OK)
                 }
             }
 
             route("/joinByGuid") {
+                // исправить что человек может зайти 2 раза в одну сессию
                 post {
-                    val request = call.receive<JoinByGuidRequest>()
-                    val session = sessionService.getByGuid(UUID.fromString(request.sessionGuid))
-                    if (session != null) {
-                        val userSession = userSessionService.getByUserIdAndSessionId(request.userId, session.id)
-                        if (userSession == null) {
-                            userSessionService.create(request.userId, session.id)
-                            call.respond(HttpStatusCode.OK)
-                        }
+                    runCatching {
+                        call.receive<JoinByGuidRequest>()
+                    }.onSuccess {
+                        call.respond(
+                            HttpStatusCode.OK,
+                            sessionController.joinOnSession(it.userId, UUID.fromString(it.sessionGuid))
+                        )
+                    }.onFailure {
+                        throw IllegalArgumentException()
                     }
                 }
             }
 
             route("/leave") {
                 delete {
-                    val request = call.receive<LeaveRequest>()
-                    val userSession = userSessionService.getByUserIdAndSessionId(request.userId, request.sessionId)
-                    if (userSession != null) {
-                        val userSessionGifts = userSessionGiftService.getByUserSessionId(userSession.id)
-                        userSessionGifts.forEach {
-                            userSessionGiftService.delete(it.id)
-                        }
-                        userSessionService.delete(userSession.id)
+                    runCatching {
+                        call.receive<LeaveRequest>()
+                    }.onSuccess {
+                        sessionController.leaveOnSession(it.userId, it.sessionId)
                         call.respond(HttpStatusCode.OK)
+                    }.onFailure {
+                        throw IllegalArgumentException()
                     }
                 }
             }
 
-            route("/numberUsers/{id}") {
+            route("/usersNumber/{id}") {
                 get {
                     val sessionId = call.parameters["id"]?.toInt()
                     if (sessionId != null) {
-                        val sessions = userSessionService.getBySessionId(sessionId)
-                        val numberUsers = sessions.size
-                        call.respond(HttpStatusCode.OK, numberUsers)
+                        call.respond(HttpStatusCode.OK, sessionController.getUsersNumberInSession(sessionId))
+                    } else {
+                        throw IllegalArgumentException()
                     }
                 }
             }
 
             route("/{id}") {
+                // Все переделать
                 get {
                     val sessionId = call.parameters["id"]?.toInt()
                     if (sessionId != null) {
@@ -134,11 +123,17 @@ fun Application.sessionModule() {
 
             route("/user/{id}") {
                 get {
-                    call.respond(HttpStatusCode.OK, userSessionService.getByUserId(call.parameters["id"]!!.toInt()))
+                    val userId = call.parameters["id"]?.toInt()
+                    if (userId != null) {
+                        call.respond(HttpStatusCode.OK, sessionController.getUserSessions(userId))
+                    } else {
+                        throw IllegalArgumentException()
+                    }
                 }
             }
 
             route("/tg_user/{id}") {
+                // тут сделать как выше, но сначала найти userId
                 get {
                     val user = userService.getByTelegramId(call.parameters["id"]!!.toLong())
                     if (user != null) {
