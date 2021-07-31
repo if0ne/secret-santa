@@ -9,30 +9,37 @@ import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
 import ru.tinkoff.sanata.shared_models.request.ConnectGuidRequest
 import ru.tinkoff.sanata.shared_models.request.CreateGuidRequest
-import ru.tinkoff.santa.rest.user.UserService
 import java.util.*
 
 fun Application.guidModule() {
-    val guidService: GuidService by closestDI().instance()
-    val userService: UserService by closestDI().instance()
+    val guidController: GuidController by closestDI().instance()
 
-    routing{
-        route("/guid"){
-            route("/create"){
-                post{
-                    val request = call.receive<CreateGuidRequest>()
-                    call.respond(HttpStatusCode.Created, guidService.create(request.telegramId).toString())
+    routing {
+        route("/guid") {
+            route("/create") {
+                post {
+                    runCatching {
+                        call.receive<CreateGuidRequest>()
+                    }.onSuccess {
+                        call.respond(
+                            HttpStatusCode.Created,
+                            guidController.create(it.telegramId).telegramGuid.toString()
+                        )
+                    }.onFailure {
+                        throw IllegalArgumentException()
+                    }
                 }
             }
 
-            route("/connect"){
-                post{
-                    val request = call.receive<ConnectGuidRequest>()
-                    val guid = guidService.getByGuid(UUID.fromString(request.telegramGuid))
-                    if (guid != null) {
-                        userService.setTelegramId(request.id, guid.telegramId, guid.telegramGuid)
-                        guidService.delete(guid.telegramGuid)
+            route("/connect") {
+                post {
+                    runCatching {
+                        call.receive<ConnectGuidRequest>()
+                    }.onSuccess {
+                        guidController.connect(UUID.fromString(it.telegramGuid), it.id)
                         call.respond(HttpStatusCode.OK)
+                    }.onFailure {
+                        throw IllegalArgumentException()
                     }
                 }
             }

@@ -10,6 +10,7 @@ fun Application.configureRouting(bot: SantaBot) {
     routing {
         post("/") {
             val receiveBody = call.receiveText()
+            print(receiveBody)
             bot.processUpdate(receiveBody)
             call.respond(HttpStatusCode.OK)
         }

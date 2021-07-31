@@ -6,7 +6,11 @@ import ru.tinkoff.sanata.shared_models.model.Session
 import ru.tinkoff.sanata.shared_models.model.User
 
 @Serializable
-data class SessionInfoResponse(
+data class UserInfoAboutSessionResponse(
+    val user: User,
     val session: Session,
-    val usersGifts: List<Pair<User, List<Gift>>>
+    val users: List<User>,
+    val userGifts: List<Gift>,
+    val giftReceivingUser: User?,
+    val receivingUserGifts: List<Gift>
 )

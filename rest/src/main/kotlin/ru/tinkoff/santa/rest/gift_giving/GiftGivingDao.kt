@@ -8,6 +8,12 @@ class GiftGivingDao(private val database: Database) {
         GiftsGivings.selectAll().map(::extractGiftGiving)
     }
 
+    fun getByGiftGivingUserId(id: Int): GiftGiving? = transaction(database) {
+        runCatching {
+            extractGiftGiving(GiftsGivings.select { GiftsGivings.giftGivingUserId eq id }.first())
+        }.getOrNull()
+    }
+
     fun create(sessionId: Int, giftGivingUserId: Int, giftReceivingUserId: Int): GiftGiving = transaction(database) {
         GiftGiving(
             GiftsGivings.insertAndGetId {
