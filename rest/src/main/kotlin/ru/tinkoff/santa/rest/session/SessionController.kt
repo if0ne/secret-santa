@@ -30,10 +30,8 @@ class SessionController(
         dateTimeToChoose: LocalDateTime,
         minPlayersQuantity: Int?
     ) {
-        val userId = userService.getRealUserId(hostId, hostTelegramId)
-        if (userService.getById(userId) == null) {
-            throw Exception()
-        }
+        val userId = getRealUserId(hostId, hostTelegramId)
+        userService.checkUser(userId)
         if (minPlayersQuantity == null) {
             sessionService.create(
                 SessionState.LOBBY,
@@ -60,6 +58,22 @@ class SessionController(
         )
     }
 
+    private fun getRealUserId(id: Int?, telegramId: Long?): Int {
+        if (id != null) {
+            return id
+        }
+        if (telegramId != null) {
+            val user = userService.getByTelegramId(telegramId)
+            if (user != null) {
+                return user.id
+            } else {
+                throw Exception()
+            }
+        } else {
+            throw Exception()
+        }
+    }
+
     fun start(sessionId: Int) {
         val session = sessionService.getById(sessionId) ?: throw Exception()
         if (session.currentState != SessionState.LOBBY) {
@@ -69,29 +83,32 @@ class SessionController(
             throw Exception()
         }
         val users = getUsersInSession(sessionId).shuffled()
-        giftGivingService.create(sessionId, users.last().id, users.first().id)
-        for (i in 1 until users.size) {
-            giftGivingService.create(sessionId, users[i - 1].id, users[i].id)
+        createGiftGivingsForSession(sessionId, users)
+        sessionService.startSession(sessionId)
+    }
+
+    private fun createGiftGivingsForSession(sessionId: Int, users: List<User>) {
+        var giftReceivingUser = users.first()
+        var giftGivingUser = users.last()
+        giftGivingService.create(sessionId, giftGivingUser.id, giftReceivingUser.id)
+        val iterator = (users - giftReceivingUser).iterator()
+        while (iterator.hasNext()) {
+            giftGivingUser = iterator.next()
+            giftGivingService.create(sessionId, giftReceivingUser.id, giftGivingUser.id)
+            giftReceivingUser = giftGivingUser
         }
-        sessionService.setCurrentState(session.id, SessionState.GAME)
     }
 
     fun finish(sessionId: Int) {
-        val session = sessionService.getById(sessionId)
-        if (session != null) {
-            if (session.currentState != SessionState.GAME) {
-                throw Exception()
-            }
-            sessionService.setCurrentState(sessionId, SessionState.FINISH)
-        } else {
+        val session = sessionService.getById(sessionId) ?: throw Exception()
+        if (session.currentState != SessionState.GAME) {
             throw Exception()
         }
+        sessionService.finishSession(sessionId)
     }
 
     fun joinOnSession(userId: Int, sessionGuid: UUID): Session {
-        if (userService.getById(userId) == null) {
-            throw Exception()
-        }
+        userService.checkUser(userId)
         val session = sessionService.getByGuid(sessionGuid) ?: throw Exception()
         if (session.currentState != SessionState.LOBBY) {
             throw Exception()
@@ -104,9 +121,7 @@ class SessionController(
     }
 
     fun leaveOnSession(userId: Int, sessionId: Int) {
-        if (userService.getById(userId) == null) {
-            throw Exception()
-        }
+        userService.checkUser(userId)
         val session = sessionService.getById(sessionId) ?: throw Exception()
         if (session.currentState != SessionState.LOBBY) {
             throw Exception()
@@ -117,13 +132,13 @@ class SessionController(
     }
 
     fun getUserInfoAboutSession(userId: Int, sessionId: Int): UserInfoAboutSessionResponse {
-        val user = userService.getById(userId) ?: throw Exception()
+        val user = userService.checkAndGetUser(userId)
         val session = sessionService.getById(sessionId) ?: throw Exception()
         val users = getUsersInSession(sessionId)
         val gifts = getGiftsByUserIdAndSessionId(userId, sessionId)
         val giftReceivingUser = getGiftReceivingUser(userId)
         val receivingUserGifts: List<Gift> = if (giftReceivingUser == null) {
-            listOf<Gift>()
+            listOf()
         } else {
             getGiftsByUserIdAndSessionId(giftReceivingUser.id, sessionId)
         }
@@ -149,19 +164,18 @@ class SessionController(
     }
 
 
-    fun getUserSessionsByUserId(userId: Int): List<Session> {
-        val user = userService.getById(userId) ?: throw Exception()
-        return getUserSessions(user)
-    }
+    fun getSessionsByUserId(userId: Int): List<Session> =
+        getSessionsByUser(userService.checkAndGetUser(userId))
 
-    fun getUserSessionsByTelegramId(userTelegramId: Long): List<Session> {
-        val user = userService.getByTelegramId(userTelegramId) ?: throw Exception()
-        return getUserSessions(user)
-    }
 
-    private fun getUserSessions(user: User): List<Session> = userSessionService.getByUserId(user.id).map {
-        sessionService.getById(it.sessionId)!!
-    }
+    fun getSessionsByUserTelegramId(userTelegramId: Long): List<Session> =
+        getSessionsByUser(userService.checkAndGetUserByTelegramId(userTelegramId))
+
+
+    private fun getSessionsByUser(user: User): List<Session> =
+        userSessionService.getByUserId(user.id).map {
+            sessionService.getById(it.sessionId)!!
+        }
 
     private fun getUsersInSession(sessionId: Int): List<User> {
         if (sessionService.getById(sessionId) == null) {
