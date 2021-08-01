@@ -8,4 +8,5 @@ import org.kodein.di.singleton
 fun DI.Builder.guidComponents() {
     bind<GuidDao>() with singleton { GuidDao(instance()) }
     bind<GuidService>() with singleton { GuidService(instance()) }
+    bind<GuidController>() with singleton { GuidController(instance(), instance()) }
 }

@@ -16,6 +16,7 @@ fun DI.Builder.sessionComponents() {
             instance(),
             instance(),
             instance(),
+            instance(),
             instance()
         )
     }

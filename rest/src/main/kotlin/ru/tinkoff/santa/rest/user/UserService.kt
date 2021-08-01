@@ -10,6 +10,7 @@ class UserService(private val userDao: UserDao) {
 
     fun getByTelegramGuid(telegramGuid: UUID): User? = userDao.getByTelegramGuid(telegramGuid)
 
+    // наверное вынесу повыше
     fun getRealUserId(id: Int?, telegramId: Long?): Int {
         if (id != null) {
             return id

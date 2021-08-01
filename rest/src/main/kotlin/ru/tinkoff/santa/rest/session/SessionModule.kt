@@ -8,36 +8,31 @@ import io.ktor.routing.*
 import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
 import ru.tinkoff.sanata.shared_models.request.CreateSessionRequest
-import ru.tinkoff.sanata.shared_models.request.JoinByGuidRequest
+import ru.tinkoff.sanata.shared_models.request.JoinRequest
 import ru.tinkoff.sanata.shared_models.request.LeaveRequest
-import ru.tinkoff.sanata.shared_models.response.SessionInfoResponse
-import ru.tinkoff.santa.rest.gift.GiftService
-import ru.tinkoff.santa.rest.gift_giving.GiftGivingService
-import ru.tinkoff.santa.rest.user.UserService
-import ru.tinkoff.santa.rest.user_session.UserSessionService
-import ru.tinkoff.santa.rest.user_session_gift.UserSessionGiftService
+import ru.tinkoff.sanata.shared_models.request.UserSessionInfoRequest
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 fun Application.sessionModule() {
-    val userService: UserService by closestDI().instance()
-    val sessionService: SessionService by closestDI().instance()
-    val giftService: GiftService by closestDI().instance()
-    val userSessionService: UserSessionService by closestDI().instance()
-    val userSessionGiftService: UserSessionGiftService by closestDI().instance()
-    val giftGivingService: GiftGivingService by closestDI().instance()
     val sessionController: SessionController by closestDI().instance()
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
     routing {
-        route("/start/{id}") {
-            get {
-                sessionController.start(call.parameters["id"]!!.toInt())
-            }
-        }
-
         route("/session") {
+            route("/start/{id}") {
+                get {
+                    sessionController.start(call.parameters["id"]!!.toInt())
+                }
+            }
+
+            route("/finish/{id}") {
+                get {
+                    sessionController.finish(call.parameters["id"]!!.toInt())
+                }
+            }
+
             route("/create") {
                 post {
                     // с датами переделать и исключения в контроллере
@@ -60,11 +55,11 @@ fun Application.sessionModule() {
                 }
             }
 
-            route("/joinByGuid") {
-                // исправить что человек может зайти 2 раза в одну сессию
+            route("/join") {
+                // проверку UUID вынести
                 post {
                     runCatching {
-                        call.receive<JoinByGuidRequest>()
+                        call.receive<JoinRequest>()
                     }.onSuccess {
                         call.respond(
                             HttpStatusCode.OK,
@@ -100,23 +95,17 @@ fun Application.sessionModule() {
                 }
             }
 
-            route("/{id}") {
-                // Все переделать
-                get {
-                    val sessionId = call.parameters["id"]?.toInt()
-                    if (sessionId != null) {
-                        val sessionInfoResponse = SessionInfoResponse(
-                            sessionService.getById(sessionId)!!,
-                            userSessionService.getBySessionId(sessionId).map {
-                                Pair(
-                                    userService.getById(it.userId)!!,
-                                    userSessionGiftService.getByUserSessionId(it.id).map { userSessionGift ->
-                                        giftService.getById(userSessionGift.giftId)!!
-                                    }
-                                )
-                            }
+            route("/userInfo") {
+                post {
+                    runCatching {
+                        call.receive<UserSessionInfoRequest>()
+                    }.onSuccess {
+                        call.respond(
+                            HttpStatusCode.OK,
+                            sessionController.getUserInfoAboutSession(it.userId, it.sessionId)
                         )
-                        call.respond(HttpStatusCode.OK, sessionInfoResponse)
+                    }.onFailure {
+                        throw IllegalArgumentException()
                     }
                 }
             }
@@ -125,7 +114,7 @@ fun Application.sessionModule() {
                 get {
                     val userId = call.parameters["id"]?.toInt()
                     if (userId != null) {
-                        call.respond(HttpStatusCode.OK, sessionController.getUserSessions(userId))
+                        call.respond(HttpStatusCode.OK, sessionController.getUserSessionsByUserId(userId))
                     } else {
                         throw IllegalArgumentException()
                     }
@@ -133,28 +122,12 @@ fun Application.sessionModule() {
             }
 
             route("/tg_user/{id}") {
-                // тут сделать как выше, но сначала найти userId
                 get {
-                    val user = userService.getByTelegramId(call.parameters["id"]!!.toLong())
-                    if (user != null) {
-                        val userSession = userSessionService.getByUserId(user.id)
-                        val sessionInfoResponse = userSession.groupBy {
-                            it.sessionId
-                        }.map {
-                            SessionInfoResponse(
-                                sessionService.getById(it.key)!!,
-                                it.value.map { userSession ->
-                                    Pair(
-                                        userService.getById(userSession.userId)!!,
-                                        userSessionGiftService.getByUserSessionId(userSession.id)
-                                            .map { userSessionGift ->
-                                                giftService.getById(userSessionGift.giftId)!!
-                                            }
-                                    )
-                                }
-                            )
-                        }
-                        call.respond(HttpStatusCode.OK, sessionInfoResponse)
+                    val userTelegramId = call.parameters["id"]?.toLong()
+                    if (userTelegramId != null) {
+                        call.respond(HttpStatusCode.OK, sessionController.getUserSessionsByTelegramId(userTelegramId))
+                    } else {
+                        throw IllegalArgumentException()
                     }
                 }
             }
