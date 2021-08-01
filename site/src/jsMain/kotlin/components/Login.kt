@@ -19,7 +19,7 @@ import styled.styledDiv
 import styled.styledP
 
 external interface LoginProps: RProps {
-    var logginCallback: (Event) -> Unit
+    var logginCallback: (String, String) -> Unit
 }
 
 data class LoginState(
@@ -74,7 +74,9 @@ class Login: RComponent<LoginProps, LoginState>() {
                 buttonType = ButtonType.SUBMIT
 
                 //TODO: ПЕРЕДАВАТЬ РОДИТЕЛЮ ЛОГИН И ПАРОЛЬ
-                onClick = props.logginCallback
+                onClick = {
+                    props.logginCallback(state.login,state.password)
+                }
             }
             br {}
             routeLink("/signup") {

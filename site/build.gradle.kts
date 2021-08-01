@@ -1,10 +1,9 @@
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("multiplatform") version "1.4.32"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.5.21"
+    kotlin("multiplatform") version "1.5.20"
     application
+    kotlin("plugin.serialization") version "1.5.20"
     //kotlin("jvm") version "1.5.30-M1"
 }
 
@@ -47,7 +46,12 @@ kotlin {
         }
     }
     sourceSets {
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
+                implementation("io.ktor:ktor-client-core:1.6.1")
+            }
+        }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
@@ -56,8 +60,10 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-server-netty:1.4.0")
-                implementation("io.ktor:ktor-html-builder:1.4.0")
+                implementation("io.ktor:ktor-serialization:1.6.1")
+                implementation("io.ktor:ktor-server-core:1.6.1")
+                implementation("io.ktor:ktor-server-netty:1.6.1")
+                implementation("io.ktor:ktor-html-builder:1.6.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.2")
             }
         }
@@ -75,7 +81,11 @@ kotlin {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-styled:5.3.0-pre.216-kotlin-1.5.20")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-ring-ui:4.0.21-pre.216-kotlin-1.5.20")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom:5.2.0-pre.216-kotlin-1.5.20")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
+
+                implementation("io.ktor:ktor-client-js:1.6.1")
+                implementation("io.ktor:ktor-client-json:1.6.1")
+                implementation("io.ktor:ktor-client-serialization:1.6.1")
+                //implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-js:1.1.0")
             }
         }
         val jsTest by getting {
