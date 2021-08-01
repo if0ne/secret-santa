@@ -1,6 +1,7 @@
 package ru.tinkoff.santa.rest.user
 
 import ru.tinkoff.sanata.shared_models.model.User
+import ru.tinkoff.santa.rest.user.exception.UserNotFoundException
 import java.util.*
 
 class UserService(private val userDao: UserDao) {
@@ -9,23 +10,6 @@ class UserService(private val userDao: UserDao) {
     fun getById(id: Int): User? = userDao.getById(id)
 
     fun getByTelegramGuid(telegramGuid: UUID): User? = userDao.getByTelegramGuid(telegramGuid)
-
-    // наверное вынесу повыше
-    fun getRealUserId(id: Int?, telegramId: Long?): Int {
-        if (id != null) {
-            return id
-        }
-        if (telegramId != null) {
-            val user = getByTelegramId(telegramId)
-            if (user != null) {
-                return user.id
-            } else {
-                throw Exception()
-            }
-        } else {
-            throw Exception()
-        }
-    }
 
     fun getByEmail(email: String): User? = userDao.getByEmail(email)
 
@@ -81,6 +65,20 @@ class UserService(private val userDao: UserDao) {
         avatarUrl,
         telegramId
     )
+
+    fun checkUser(userId: Int) {
+        if (getById(userId) == null) {
+            throw UserNotFoundException()
+        }
+    }
+
+    fun checkAndGetUser(userId: Int): User {
+        return getById(userId) ?: throw UserNotFoundException()
+    }
+
+    fun checkAndGetUserByTelegramId(userTelegramId: Long): User {
+        return getByTelegramId(userTelegramId) ?: throw UserNotFoundException()
+    }
 
     fun delete(id: Int) = userDao.delete(id)
 }

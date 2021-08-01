@@ -17,6 +17,7 @@ import java.util.*
 
 fun Application.sessionModule() {
     val sessionController: SessionController by closestDI().instance()
+
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
     routing {
@@ -114,7 +115,7 @@ fun Application.sessionModule() {
                 get {
                     val userId = call.parameters["id"]?.toInt()
                     if (userId != null) {
-                        call.respond(HttpStatusCode.OK, sessionController.getUserSessionsByUserId(userId))
+                        call.respond(HttpStatusCode.OK, sessionController.getSessionsByUserId(userId))
                     } else {
                         throw IllegalArgumentException()
                     }
@@ -125,7 +126,7 @@ fun Application.sessionModule() {
                 get {
                     val userTelegramId = call.parameters["id"]?.toLong()
                     if (userTelegramId != null) {
-                        call.respond(HttpStatusCode.OK, sessionController.getUserSessionsByTelegramId(userTelegramId))
+                        call.respond(HttpStatusCode.OK, sessionController.getSessionsByUserTelegramId(userTelegramId))
                     } else {
                         throw IllegalArgumentException()
                     }
