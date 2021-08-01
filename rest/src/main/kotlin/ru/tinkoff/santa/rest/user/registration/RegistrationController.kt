@@ -18,22 +18,21 @@ class RegistrationController(private val userService: UserService) {
     }
 
     fun register(
-        nickname: String,
+        phone: String,
         email: String,
         password: String,
         firstName: String,
         lastName: String,
         middleName: String?
     ): User {
-        /*if (userService.getByNickname(nickname) != null) {
-            throw RegistrationException(RegistrationStatusCode.NICKNAME_NOT_AVAILABLE)
-        }*/
         if (userService.getByEmail(email) != null) {
             throw RegistrationException(RegistrationStatusCode.EMAIL_NOT_AVAILABLE)
         }
+        if (userService.getByPhone(phone) != null) {
+            throw RegistrationException(RegistrationStatusCode.PHONE_NOT_AVAILABLE)
+        }
         return userService.create(
-            null,
-            nickname,
+            phone,
             email,
             password.encodePassword(),
             firstName,

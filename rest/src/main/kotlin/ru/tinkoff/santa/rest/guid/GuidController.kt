@@ -19,7 +19,7 @@ class GuidController(
 
     fun connect(telegramGuid: UUID, userId: Int) {
         val guid = guidService.getByGuid(telegramGuid) ?: throw Exception()
-        userService.setTelegramId(userId, guid.telegramId, guid.telegramGuid)
+        userService.setTelegramId(userId, guid.telegramId)
         guidService.delete(telegramGuid)
     }
 }
