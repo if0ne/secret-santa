@@ -15,6 +15,7 @@ import ru.tinkoff.santa.rest.gift.giftModule
 import ru.tinkoff.santa.rest.gift_giving.giftGivingComponents
 import ru.tinkoff.santa.rest.guid.guidComponents
 import ru.tinkoff.santa.rest.guid.guidModule
+import ru.tinkoff.santa.rest.plugin.configureCors
 import ru.tinkoff.santa.rest.plugin.configureSerialization
 import ru.tinkoff.santa.rest.plugin.exceptionHandlerModule
 import ru.tinkoff.santa.rest.session.sessionComponents
@@ -39,6 +40,7 @@ fun main() {
             guidComponents()
         }
         configureSerialization()
+        configureCors()
 
         exceptionHandlerModule()
         sessionModule()
