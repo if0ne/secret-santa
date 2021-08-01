@@ -4,6 +4,7 @@ import components.basic.ButtonColor
 import components.basic.ButtonType
 import components.basic.santaButton
 import components.basic.santaInput
+import kotlinx.coroutines.launch
 import kotlinx.css.*
 import react.RBuilder
 import react.RComponent
@@ -11,6 +12,9 @@ import react.RProps
 import react.RState
 import react.dom.br
 import react.router.dom.routeLink
+import shared_models.model.User
+import shared_models.request.RegistrationRequest
+import signup
 import styled.css
 import styled.styledDiv
 import styled.styledP
@@ -23,12 +27,14 @@ data class SignupState(
     var password: Pair<String, Boolean>,
     var phone: Pair<String, Boolean>,
     var signed: Boolean,
+    var isShowedMessage: Boolean,
 ): RState
 
 class Signup: RComponent<RProps, SignupState>() {
 
     init {
         state.signed = false
+        state.isShowedMessage = false
     }
 
     override fun RBuilder.render() {
@@ -69,7 +75,8 @@ class Signup: RComponent<RProps, SignupState>() {
                                 state.email,
                                 state.password,
                                 state.phone,
-                                state.signed
+                                state.signed,
+                                state.isShowedMessage
                             ))
                         }
                     }
@@ -89,7 +96,8 @@ class Signup: RComponent<RProps, SignupState>() {
                                 state.email,
                                 state.password,
                                 state.phone,
-                                state.signed
+                                state.signed,
+                                state.isShowedMessage
                             ))
                         }
                     }
@@ -115,7 +123,8 @@ class Signup: RComponent<RProps, SignupState>() {
                                 Pair(value, valid),
                                 state.password,
                                 state.phone,
-                                state.signed
+                                state.signed,
+                                state.isShowedMessage
                             ))
                         }
                     }
@@ -145,7 +154,8 @@ class Signup: RComponent<RProps, SignupState>() {
                                 state.email,
                                 state.password,
                                 state.phone,
-                                state.signed
+                                state.signed,
+                                state.isShowedMessage
                             ))
                         }
                     }
@@ -171,7 +181,8 @@ class Signup: RComponent<RProps, SignupState>() {
                                 state.email,
                                 state.password,
                                 Pair(value, valid),
-                                state.signed
+                                state.signed,
+                                state.isShowedMessage
                             ))
                         }
                     }
@@ -197,7 +208,8 @@ class Signup: RComponent<RProps, SignupState>() {
                                 state.email,
                                 Pair(value, valid),
                                 state.phone,
-                                state.signed
+                                state.signed,
+                                state.isShowedMessage
                             ))
                         }
                     }
@@ -229,8 +241,17 @@ class Signup: RComponent<RProps, SignupState>() {
                                 state.email.second &&
                                 state.phone.second &&
                                 state.password.second) {
-                                //TODO: ОТПРАВИТЬ ЗАПРОС НА РЕГИСТРАЦИЮ
-                                //TODO: УЧИТВЫВАТЬ, ЧТО ПОЛЬЗОВАТЕЛЬ СОЗДАН
+                                var user: User? = null
+                                mainScope.launch {
+                                    user = signup(RegistrationRequest(
+                                        "user${state.lastName}",
+                                        state.email.first,
+                                        state.password.first,
+                                        state.firstName.first,
+                                        state.lastName.first,
+                                        state.middleName
+                                    ))
+                                }
                                 setState(SignupState(
                                     state.firstName,
                                     state.lastName,
@@ -238,13 +259,23 @@ class Signup: RComponent<RProps, SignupState>() {
                                     state.email,
                                     state.password,
                                     state.phone,
-                                    true
+                                    user != null,
+                                    user == null
                                 ))
                             }
                         }
                     }
 
                     br {}
+                    if (state.isShowedMessage) {
+                        styledP {
+                            css {
+                                classes = mutableListOf("form-text")
+                                color = Color("#8C1F1F")
+                            }
+                            +"Почта уже зарегистрирована"
+                        }
+                    }
                     routeLink("/login") {
                         styledP {
                             css {

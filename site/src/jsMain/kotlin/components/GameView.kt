@@ -1,20 +1,25 @@
 package components
 
 import components.basic.*
+import createGift
+import kotlinx.coroutines.launch
 import kotlinx.css.*
 import react.*
 import react.dom.attrs
 import react.dom.p
+import removeMemberFromGame
 import shared_models.model.Gift
-import shared_models.model.Session
 import shared_models.model.SessionState
 import shared_models.model.User
+import shared_models.request.CreateGiftRequest
+import shared_models.request.LeaveRequest
+import shared_models.response.UserInfoAboutSessionResponse
 import styled.*
 
+//TODO: ПОФИКСИТЬ БАГ С ВЫВОДОМ ПОДАРКОВ
 external interface GameViewProps: RProps {
     var user: User
-    var session: Session
-    var gifts: List<Gift>
+    var info: UserInfoAboutSessionResponse
 }
 
 data class GameViewState(
@@ -29,7 +34,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
 
     override fun GameViewState.init() {
         setState {
-            gifts = props.gifts as MutableList<Gift> //TODO: Может сломаться
+
         }
     }
 
@@ -66,15 +71,21 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                         }
                         +"${props.user.lastName} ${props.user.firstName}"
                     }
-                    if (props.user.id == props.session.hostId &&
-                        props.session.currentState == SessionState.LOBBY) {
+                    if (props.user.id == props.info.session.hostId &&
+                        props.info.session.currentState == SessionState.LOBBY &&
+                        props.user.id != user.id) {
                         santaButton {
                             text = "Удалить"
                             color = ButtonColor.RED
                             buttonType = ButtonType.FULL_WIDTH
 
                             onClick = {
-                                //TODO: POST-запрос с удалением участника
+                                mainScope.launch {
+                                    removeMemberFromGame(LeaveRequest(
+                                        user.id,
+                                        props.info.session.id
+                                    ))
+                                }
                             }
                         }
                     }
@@ -124,14 +135,14 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     fontSize = (1.25).rem
                     margin = "0"
                 }
-                +"Игра №${props.session.id}"
+                +"Игра №${props.info.session.id}"
             }
 
             styledP {
                 css {
                     margin = "0"
                 }
-                +"Дата мероприятия: ${props.session.eventTimestamp}"
+                +"Дата мероприятия: ${props.info.session.eventTimestamp}"
             }
 
             styledP {
@@ -140,7 +151,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     css {
                         fontWeight = FontWeight.bold
                     }
-                    +"${props.session.budget}₽"
+                    +"${props.info.session.budget}₽"
                 }
             }
         }
@@ -174,7 +185,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                             textAlign = TextAlign.center
                             fontSize = (1.25).rem
                         }
-                        +(props.session.guid ?: "")
+                        +(props.info.session.guid ?: "")
                     }
                 }
             }
@@ -278,9 +289,19 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                             onClick = {
                                 if (state.giftName.second) {
                                     val newGifts = state.gifts
-                                    //TODO: ЗАПРОС НА ДОБАВЛЕНИЯ ПОДАРКА, ПОЛУЧЕНИЕ ЕГО ID
-                                    newGifts.add(Gift(0, "", state.giftName.first, state.giftDesc))
-                                    setState(GameViewState(!state.isNewGift,newGifts, state.giftName, state.giftDesc))
+                                    var gift: Gift? = null
+                                    mainScope.launch {
+                                        gift = createGift(CreateGiftRequest(
+                                            props.user.id,
+                                            props.info.session.id,
+                                            state.giftName.first,
+                                            state.giftDesc
+                                        ))
+                                    }
+                                    if (gift != null) {
+                                        newGifts.add(gift!!)
+                                        setState(GameViewState(!state.isNewGift,newGifts, Pair("", false), ""))
+                                    }
                                 }
                             }
                         }
@@ -302,13 +323,13 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     classes = mutableListOf("row","row-cols-1","row-cols-md-4","g-4")
                 }
 
-                //TODO: ВЫВОД УЧАСТНИКОВ
-
+                props.info.users.forEach {
+                    memberCard(it)
+                }
             }
         }
     }
 
-    //TODO: ВЫВОД  ИНФОРАЦИИ КОМУ ТЫ ДАРИШЬ ПОДАРОК
     private fun RBuilder.startedGame(): ReactElement {
         return styledDiv {
             styledDiv {
@@ -334,8 +355,8 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     classes = mutableListOf("mx-auto")
                     width = 18.rem
                 }
-                //TODO: ВЫВОД КОМУ ДАРИТЬ
-                //memberCard("Асташкин Максим")
+
+                memberCard(props.info.giftReceivingUser!!)
             }
 
             styledDiv {
@@ -343,16 +364,15 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     classes = mutableListOf("row","row-cols-1","row-cols-md-3","g-4")
                 }
 
-                //TODO: ПОЛУЧЕНИЕ ПОДАРКОВ, КОМУ ДАРИТЬ
-                for (item in state.gifts) {
-                    giftCard(item)
+                props.info.receivingUserGifts.forEach {
+                    giftCard(it)
                 }
             }
         }
     }
 
     override fun RBuilder.render() {
-        if (props.session.currentState == SessionState.LOBBY) {
+        if (props.info.session.currentState == SessionState.LOBBY) {
             unstartedGame()
         } else {
             startedGame()

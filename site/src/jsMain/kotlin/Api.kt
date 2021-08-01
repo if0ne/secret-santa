@@ -11,6 +11,7 @@ import shared_models.model.Gift
 import shared_models.model.Session
 import shared_models.model.User
 import shared_models.request.*
+import shared_models.response.UserInfoAboutSessionResponse
 
 enum class RestRoutes(val route: String) {
     AUTH("/user/authorization"),
@@ -20,7 +21,8 @@ enum class RestRoutes(val route: String) {
     MEMBER_COUNT("/session/usersNumber/"),
     LEAVE_FROM_SESSION("/session/leave"),
     CREATE_GIFT("/gift/create"),
-    SIGNUP("/user/registration")
+    SIGNUP("/user/registration"),
+    SESSION_INFO("/session/userInfo")
 }
 
 const val restUrl = "http://localhost:8081"
@@ -63,8 +65,21 @@ suspend fun getUserSessions(user: User): List<Session> {
     }
 }
 
-suspend fun getSessionInformation(id: Int): Session? {
-    return null
+suspend fun getSessionInformation(request: UserSessionInfoRequest): UserInfoAboutSessionResponse? {
+    val response = client.post<HttpResponse>(restUrl + RestRoutes.SESSION_INFO.route) {
+        method = HttpMethod.Post
+        contentType(ContentType.Application.Json)
+        body = request
+    }
+
+    return when (response.status) {
+        HttpStatusCode.OK -> {
+            response.receive<UserInfoAboutSessionResponse>()
+        }
+        else -> {
+            null
+        }
+    }
 }
 
 suspend fun createSession(conf: CreateSessionRequest) {
@@ -75,7 +90,7 @@ suspend fun createSession(conf: CreateSessionRequest) {
     }
 }
 
-suspend fun joinByGuid(request: JoinByGuidRequest): Session? {
+suspend fun joinByGuid(request: JoinRequest): Session? {
     val response = client.post<HttpResponse>(restUrl + RestRoutes.JOIN_BY_GUID.route) {
         method = HttpMethod.Post
         contentType(ContentType.Application.Json)
@@ -133,7 +148,7 @@ suspend fun createGift(request: CreateGiftRequest): Gift? {
     }
 }
 
-suspend fun signup(request: RegistrationRequest): Boolean {
+suspend fun signup(request: RegistrationRequest): User? {
     val response = client.post<HttpResponse>(restUrl + RestRoutes.SIGNUP.route) {
         method = HttpMethod.Post
         contentType(ContentType.Application.Json)
@@ -141,7 +156,7 @@ suspend fun signup(request: RegistrationRequest): Boolean {
     }
 
     return when(response.status) {
-        HttpStatusCode.Created -> true
-        else -> false
+        HttpStatusCode.Created -> response.receive<User>()
+        else -> null
     }
 }

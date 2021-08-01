@@ -16,6 +16,7 @@ data class User(
     val telegramId: Long?
 ) {
     override fun equals(other: Any?): Boolean {
+        if (this === other) return true
 
         other as User
 

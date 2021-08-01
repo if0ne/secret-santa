@@ -4,6 +4,8 @@ import components.basic.ButtonColor
 import components.basic.ButtonType
 import components.basic.santaButton
 import components.basic.santaInput
+import getMemberCount
+import kotlinx.coroutines.launch
 import kotlinx.css.*
 import react.*
 import react.router.dom.routeLink
@@ -47,8 +49,12 @@ class GameList: RComponent<GameListProps, GameListState>() {
                     css {
                         margin = "0"
                     }
-                    //TODO: ПОЛУЧИТЬ КОЛИЧЕСТВО УЧАСТНИКОВ
-                    +"Количество участников: 8"
+
+                    var userCount = 0
+                    mainScope.launch {
+                        userCount = getMemberCount(session)
+                    }
+                    +"Количество участников: $userCount"
                 }
                 styledP {
                     css {
