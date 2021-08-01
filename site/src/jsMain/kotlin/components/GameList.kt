@@ -5,12 +5,15 @@ import components.basic.ButtonType
 import components.basic.santaButton
 import components.basic.santaInput
 import getMemberCount
+import getUserSessions
+import joinByGuid
 import kotlinx.coroutines.launch
 import kotlinx.css.*
 import react.*
 import react.router.dom.routeLink
 import shared_models.model.Session
 import shared_models.model.User
+import shared_models.request.JoinRequest
 import styled.css
 import styled.styledDiv
 import styled.styledP
@@ -18,16 +21,27 @@ import styled.styledSpan
 
 external interface GameListProps: RProps {
     var user: User
-    var gameList: List<Session>
 }
 
 data class GameListState(
     var gameId: String,
+    var gameList: MutableList<Pair<Session, Int>>
 ): RState
 
-class GameList: RComponent<GameListProps, GameListState>() {
+class GameList(props: GameListProps) : RComponent<GameListProps,GameListState>(props) {
 
-    private fun RBuilder.gameLi(session: Session): ReactElement {
+    init {
+        state.gameList = mutableListOf()
+        mainScope.launch {
+            val userSessions = getUserSessions(props.user) as MutableList<Session>
+            val session = userSessions.map {
+                Pair(it, getMemberCount(it))
+            }
+            setState(GameListState("", session as MutableList<Pair<Session, Int>>))
+        }
+    }
+
+    private fun RBuilder.gameLi(session: Session, userCount: Int): ReactElement {
         return styledDiv {
             css {
                 classes = mutableListOf("card", "w-75", "mx-auto")
@@ -50,10 +64,6 @@ class GameList: RComponent<GameListProps, GameListState>() {
                         margin = "0"
                     }
 
-                    var userCount = 0
-                    mainScope.launch {
-                        userCount = getMemberCount(session)
-                    }
                     +"Количество участников: $userCount"
                 }
                 styledP {
@@ -104,7 +114,7 @@ class GameList: RComponent<GameListProps, GameListState>() {
                     placeholder = "Введите код игры"
 
                     onChange = { value, _ ->
-                        setState(GameListState(value))
+                        setState(GameListState(value, state.gameList))
                     }
                 }
             }
@@ -121,7 +131,15 @@ class GameList: RComponent<GameListProps, GameListState>() {
                     buttonType = ButtonType.FULL_WIDTH
 
                     onClick = {
-                        //TODO: ПОПЫТКА ВХОДА В ИГРУ С ИДЕНТИФИКАТОРОМ gameId
+                        mainScope.launch {
+                            val session = joinByGuid(JoinRequest(props.user.id, state.gameId))
+
+                            if (session != null) {
+                                val newList = state.gameList
+                                newList.add(Pair(session, 1))
+                                setState(GameListState(state.gameId, newList))
+                            }
+                        }
                     }
                 }
             }
@@ -143,8 +161,8 @@ class GameList: RComponent<GameListProps, GameListState>() {
             }
         }
 
-        props.gameList.forEach {
-            gameLi(it)
+        state.gameList.forEach {
+            gameLi(it.first, it.second)
         }
     }
 }
