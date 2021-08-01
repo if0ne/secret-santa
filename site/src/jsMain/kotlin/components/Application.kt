@@ -1,8 +1,13 @@
 package components
 
+import auth
 import components.basic.ButtonColor
 import components.basic.ButtonType
 import components.basic.santaButton
+import io.ktor.client.*
+import io.ktor.client.engine.js.*
+import io.ktor.client.features.json.*
+
 import kotlinx.css.*
 import kotlinx.css.properties.TextDecoration
 
@@ -15,6 +20,10 @@ import react.router.dom.*
 import shared_models.model.User
 import styled.*
 import styled.styledDiv
+
+import kotlinx.coroutines.*
+
+val mainScope = MainScope()
 
 external interface AppProps: RProps {
 
@@ -128,21 +137,13 @@ class Application : RComponent<AppProps, AppState>() {
                             }
                             route("/login", strict = true) {
                                 child(Login::class) {
-                                    attrs.logginCallback = {
-                                        val cachedUser = User(
-                                            1,
-                                            "64564",
-                                            "Gay Boy",
-                                            "maksim.astash@gmail.com",
-                                            ByteArray(0),
-                                            "Максим",
-                                            "Асташкин",
-                                            "Сергеевич",
-                                            "https://sun9-47.userapi.com/impf/c848624/v848624074/19f3bb/9e6Trlyf1o4.jpg?size=2560x1707&quality=96&sign=cc31343bd89d4700186721803dbb97da&type=album",
-                                            75674
-                                        )
-                                        //TODO: ЗАПРОС НА ВХОД
-                                        setState(AppState(true, cachedUser))
+                                    attrs.logginCallback = { login, password ->
+                                        var cachedUser: User? = null
+                                        mainScope.launch {
+                                            cachedUser = auth(shared_models.request.AuthenticationRequest(login,password))
+                                        }
+
+                                        setState(AppState(cachedUser != null, cachedUser))
                                     }
                                 }
                             }
