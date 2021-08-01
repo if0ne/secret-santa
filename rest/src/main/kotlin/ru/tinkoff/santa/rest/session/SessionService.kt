@@ -2,6 +2,8 @@ package ru.tinkoff.santa.rest.session
 
 import ru.tinkoff.sanata.shared_models.model.Session
 import ru.tinkoff.sanata.shared_models.model.SessionState
+import ru.tinkoff.sanata.shared_models.status.SessionErrorCode
+import ru.tinkoff.santa.rest.session.exception.SessionException
 import java.time.LocalDateTime
 import java.util.*
 
@@ -56,7 +58,54 @@ class SessionService(private val sessionDao: SessionDao) {
 
     fun finishSession(sessionId: Int) = setCurrentState(sessionId, SessionState.FINISH)
 
-    private fun setCurrentState(sessionId: Int, state: SessionState) = sessionDao.setCurrentState(sessionId, state)
+    private fun setCurrentState(sessionId: Int, state: SessionState) {
+        val session = getById(sessionId)
+        if (session != null) {
+            update(
+                session.id,
+                state,
+                session.description,
+                session.hostId,
+                session.budget,
+                session.minPlayersQuantity,
+                session.eventTimestamp,
+                session.timestampToChoose
+            )
+        }
+    }
+
+    fun checkSession(sessionId: Int) {
+        if (getById(sessionId) == null) {
+            throw SessionException(SessionErrorCode.SESSION_NOT_FOUND)
+        }
+    }
+
+    fun checkAndGetSession(sessionId: Int): Session =
+        getById(sessionId) ?: throw SessionException(SessionErrorCode.SESSION_NOT_FOUND)
+
+    fun checkAndGetSessionByGuid(sessionGuid: UUID): Session =
+        getByGuid(sessionGuid) ?: throw SessionException(SessionErrorCode.SESSION_NOT_FOUND)
+
+    fun checkCurrentStateIsLobby(sessionId: Int) {
+        when (checkAndGetSession(sessionId).currentState) {
+            SessionState.GAME -> throw SessionException(SessionErrorCode.SESSION_ALREADY_STARTED)
+            SessionState.FINISH -> throw SessionException(SessionErrorCode.SESSION_ALREADY_FINISHED)
+        }
+    }
+
+    fun checkCurrentStateIsGame(sessionId: Int) {
+        when (checkAndGetSession(sessionId).currentState) {
+            SessionState.LOBBY -> throw SessionException(SessionErrorCode.SESSION_NOT_STARTED)
+            SessionState.FINISH -> throw SessionException(SessionErrorCode.SESSION_ALREADY_FINISHED)
+        }
+    }
+
+    fun checkUsersIsEnoughForStart(sessionId: Int, usersNumber: Int) {
+        val session = checkAndGetSession(sessionId)
+        if (usersNumber < session.minPlayersQuantity) {
+            throw SessionException(SessionErrorCode.NOT_ENOUGH_USERS_FOR_START)
+        }
+    }
 
     fun delete(id: Int) = sessionDao.delete(id)
 }

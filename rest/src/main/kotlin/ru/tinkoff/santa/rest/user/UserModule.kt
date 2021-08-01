@@ -9,6 +9,7 @@ import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
 import ru.tinkoff.sanata.shared_models.request.AuthenticationRequest
 import ru.tinkoff.sanata.shared_models.request.RegistrationRequest
+import ru.tinkoff.sanata.shared_models.request.SetAvatarUrlRequest
 import ru.tinkoff.santa.rest.user.authentication.AuthenticationController
 import ru.tinkoff.santa.rest.user.exception.UserNotFoundException
 import ru.tinkoff.santa.rest.user.registration.RegistrationController
@@ -49,6 +50,19 @@ fun Application.userModule() {
                                 it.middleName
                             )
                         )
+                    }.onFailure {
+                        throw IllegalArgumentException()
+                    }
+                }
+            }
+
+            route("/avatarUrl") {
+                post {
+                    runCatching {
+                        call.receive<SetAvatarUrlRequest>()
+                    }.onSuccess {
+                        userService.setAvatarUrl(it.userId, it.avatarUrl)
+                        call.respond(HttpStatusCode.OK)
                     }.onFailure {
                         throw IllegalArgumentException()
                     }

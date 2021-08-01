@@ -8,6 +8,7 @@ import ru.tinkoff.sanata.shared_models.response.UserInfoAboutSessionResponse
 import ru.tinkoff.santa.rest.gift.GiftService
 import ru.tinkoff.santa.rest.gift_giving.GiftGivingService
 import ru.tinkoff.santa.rest.user.UserService
+import ru.tinkoff.santa.rest.user.exception.UserNotFoundException
 import ru.tinkoff.santa.rest.user_session.UserSessionService
 import ru.tinkoff.santa.rest.user_session_gift.UserSessionGiftService
 import java.time.LocalDateTime
@@ -66,22 +67,15 @@ class SessionController(
             val user = userService.getByTelegramId(telegramId)
             if (user != null) {
                 return user.id
-            } else {
-                throw Exception()
             }
-        } else {
-            throw Exception()
         }
+        throw UserNotFoundException()
     }
 
     fun start(sessionId: Int) {
-        val session = sessionService.getById(sessionId) ?: throw Exception()
-        if (session.currentState != SessionState.LOBBY) {
-            throw Exception()
-        }
-        if (getUsersNumberInSession(sessionId) < session.minPlayersQuantity) {
-            throw Exception()
-        }
+        sessionService.checkSession(sessionId)
+        sessionService.checkCurrentStateIsLobby(sessionId)
+        sessionService.checkUsersIsEnoughForStart(sessionId, getUsersNumberInSession(sessionId))
         val users = getUsersInSession(sessionId).shuffled()
         createGiftGivingsForSession(sessionId, users)
         sessionService.startSession(sessionId)
@@ -100,47 +94,42 @@ class SessionController(
     }
 
     fun finish(sessionId: Int) {
-        val session = sessionService.getById(sessionId) ?: throw Exception()
-        if (session.currentState != SessionState.GAME) {
-            throw Exception()
-        }
+        sessionService.checkAndGetSession(sessionId)
+        sessionService.checkCurrentStateIsGame(sessionId)
         sessionService.finishSession(sessionId)
+        // мб удалять данные из таблиц
     }
 
     fun joinOnSession(userId: Int, sessionGuid: UUID): Session {
         userService.checkUser(userId)
-        val session = sessionService.getByGuid(sessionGuid) ?: throw Exception()
-        if (session.currentState != SessionState.LOBBY) {
-            throw Exception()
-        }
-        if (userSessionService.getByUserIdAndSessionId(userId, session.id) != null) {
-            throw Exception()
-        }
+        val session = sessionService.checkAndGetSessionByGuid(sessionGuid)
+        userSessionService.checkUserSessionNotExists(userId, session.id)
+        sessionService.checkCurrentStateIsLobby(session.id)
         userSessionService.create(userId, session.id)
         return session
     }
 
     fun leaveOnSession(userId: Int, sessionId: Int) {
         userService.checkUser(userId)
-        val session = sessionService.getById(sessionId) ?: throw Exception()
-        if (session.currentState != SessionState.LOBBY) {
-            throw Exception()
-        }
-        val userSession = userSessionService.getByUserIdAndSessionId(userId, sessionId) ?: throw Exception()
+        sessionService.checkSession(sessionId)
+        sessionService.checkCurrentStateIsLobby(sessionId)
+        val userSession = userSessionService.checkAndGetUserSession(userId, sessionId)
         userSessionGiftService.deleteByUserSession(userSession.id)
         userSessionService.delete(userSession.id)
     }
 
     fun getUserInfoAboutSession(userId: Int, sessionId: Int): UserInfoAboutSessionResponse {
         val user = userService.checkAndGetUser(userId)
-        val session = sessionService.getById(sessionId) ?: throw Exception()
+        val session = sessionService.checkAndGetSession(sessionId)
+        val userSession = userSessionService.checkAndGetUserSession(userId, sessionId)
         val users = getUsersInSession(sessionId)
-        val gifts = getGiftsByUserIdAndSessionId(userId, sessionId)
-        val giftReceivingUser = getGiftReceivingUser(userId)
+        val gifts = getGiftsByUserIdAndSessionId(userSession.id)
+        val giftReceivingUser = getGiftReceivingUser(userId, sessionId)
         val receivingUserGifts: List<Gift> = if (giftReceivingUser == null) {
             listOf()
         } else {
-            getGiftsByUserIdAndSessionId(giftReceivingUser.id, sessionId)
+            val giftReceivingUserSession = userSessionService.checkAndGetUserSession(giftReceivingUser.id, sessionId)
+            getGiftsByUserIdAndSessionId(giftReceivingUserSession.id)
         }
         return UserInfoAboutSessionResponse(
             user,
@@ -151,15 +140,13 @@ class SessionController(
         )
     }
 
-    private fun getGiftsByUserIdAndSessionId(userId: Int, sessionId: Int): List<Gift> {
-        val userSession = userSessionService.getByUserIdAndSessionId(userId, sessionId) ?: throw Exception()
-        return userSessionGiftService.getByUserSessionId(userSession.id).map {
+    private fun getGiftsByUserIdAndSessionId(userSessionId: Int): List<Gift> =
+        userSessionGiftService.getByUserSessionId(userSessionId).map {
             giftService.getById(it.giftId)!!
         }
-    }
 
-    private fun getGiftReceivingUser(userId: Int): User? {
-        val giftGiving = giftGivingService.getByGiftGivingUserId(userId) ?: return null
+    private fun getGiftReceivingUser(userId: Int, sessionId: Int): User? {
+        val giftGiving = giftGivingService.getByGiftGivingByUserIdAndSessionId(userId, sessionId) ?: return null
         return userService.getById(giftGiving.giftReceivingUserId)
     }
 
@@ -177,13 +164,8 @@ class SessionController(
             sessionService.getById(it.sessionId)!!
         }
 
-    private fun getUsersInSession(sessionId: Int): List<User> {
-        if (sessionService.getById(sessionId) == null) {
-            throw Exception()
-        }
-        return userSessionService.getBySessionId(sessionId).map {
-            userService.getById(it.userId)!!
-        }
+    private fun getUsersInSession(sessionId: Int): List<User> = userSessionService.getBySessionId(sessionId).map {
+        userService.getById(it.userId)!!
     }
 
     fun getUsersNumberInSession(sessionId: Int): Int = getUsersInSession(sessionId).size

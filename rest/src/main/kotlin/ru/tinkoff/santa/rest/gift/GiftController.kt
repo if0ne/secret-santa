@@ -14,32 +14,22 @@ class GiftController(
     private val userSessionGiftService: UserSessionGiftService
 ) {
     fun create(userId: Int, sessionId: Int, name: String, description: String?): Gift {
-        if (userService.getById(userId) == null) {
-            throw Exception()
-        }
-        if (sessionService.getById(sessionId) == null) {
-            throw Exception()
-        }
-        val userSession = userSessionService.getByUserIdAndSessionId(userId, sessionId)
-        if (userSession != null) {
-            val gift = giftService.create(
-                null,
-                name,
-                description
-            )
-            userSessionGiftService.create(
-                userSession.id, gift.id
-            )
-            return gift
-        } else {
-            throw Exception()
-        }
+        userService.checkUser(userId)
+        sessionService.checkSession(sessionId)
+        val userSession = userSessionService.checkAndGetUserSession(userId, sessionId)
+        val gift = giftService.create(
+            null,
+            name,
+            description
+        )
+        userSessionGiftService.create(
+            userSession.id, gift.id
+        )
+        return gift
     }
 
     fun delete(giftId: Int) {
-        if (giftService.getById(giftId) == null) {
-            throw Exception()
-        }
+        giftService.checkGift(giftId)
         userSessionGiftService.deleteByGift(giftId)
         giftService.delete(giftId)
     }

@@ -8,9 +8,10 @@ class GiftGivingDao(private val database: Database) {
         GiftsGivings.selectAll().map(::extractGiftGiving)
     }
 
-    fun getByGiftGivingUserId(id: Int): GiftGiving? = transaction(database) {
+    fun getByGiftGivingUserIdAndSessionId(givingUserId: Int, sessionId: Int): GiftGiving? = transaction(database) {
         runCatching {
-            extractGiftGiving(GiftsGivings.select { GiftsGivings.giftGivingUserId eq id }.first())
+            extractGiftGiving(GiftsGivings.select { (GiftsGivings.giftGivingUserId eq givingUserId) and (GiftsGivings.sessionId eq sessionId) }
+                .first())
         }.getOrNull()
     }
 

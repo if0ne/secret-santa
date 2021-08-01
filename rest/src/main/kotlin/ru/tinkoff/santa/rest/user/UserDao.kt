@@ -85,23 +85,6 @@ class UserDao(private val database: Database) {
         }
     }
 
-    fun setTelegramId(userId: Int, telegramId: Long) {
-        val user = getById(userId)
-        if (user != null) {
-            update(
-                userId,
-                user.phone,
-                user.email,
-                user.password,
-                user.firstName,
-                user.lastName,
-                user.middleName,
-                user.avatarUrl,
-                telegramId
-            )
-        }
-    }
-
     fun delete(id: Int) = transaction(database) {
         Users.deleteWhere { Users.id eq id }
     }

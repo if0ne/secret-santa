@@ -19,7 +19,7 @@ class UserSessionGiftService(private val userSessionGiftDao: UserSessionGiftDao)
     fun deleteByUserSession(userSessionId: Int) =
         getByUserSessionId(userSessionId).forEach {
             delete(it.id)
-        }
+        } // SQL
 
     fun deleteByGift(giftId: Int) {
         val userSessionGift = getByGiftId(giftId)

@@ -14,9 +14,6 @@ class UserService(private val userDao: UserDao) {
 
     fun getByTelegramId(telegramId: Long): User? = userDao.getByTelegramId(telegramId)
 
-    fun setTelegramId(userId: Int, telegramId: Long) =
-        userDao.setTelegramId(userId, telegramId)
-
     fun create(
         phone: String,
         email: String,
@@ -59,19 +56,48 @@ class UserService(private val userDao: UserDao) {
         telegramId
     )
 
+    fun setAvatarUrl(userId: Int, url: String) {
+        val user = checkAndGetUser(userId)
+        update(
+            userId,
+            user.phone,
+            user.email,
+            user.password,
+            user.firstName,
+            user.lastName,
+            user.middleName,
+            url,
+            user.telegramId
+        )
+    }
+
+    fun setTelegramId(userId: Int, telegramId: Long) {
+        val user = getById(userId)
+        if (user != null) {
+            update(
+                userId,
+                user.phone,
+                user.email,
+                user.password,
+                user.firstName,
+                user.lastName,
+                user.middleName,
+                user.avatarUrl,
+                telegramId
+            )
+        }
+    }
+
     fun checkUser(userId: Int) {
         if (getById(userId) == null) {
             throw UserNotFoundException()
         }
     }
 
-    fun checkAndGetUser(userId: Int): User {
-        return getById(userId) ?: throw UserNotFoundException()
-    }
+    fun checkAndGetUser(userId: Int): User = getById(userId) ?: throw UserNotFoundException()
 
-    fun checkAndGetUserByTelegramId(userTelegramId: Long): User {
-        return getByTelegramId(userTelegramId) ?: throw UserNotFoundException()
-    }
+    fun checkAndGetUserByTelegramId(userTelegramId: Long): User =
+        getByTelegramId(userTelegramId) ?: throw UserNotFoundException()
 
     fun delete(id: Int) = userDao.delete(id)
 }
