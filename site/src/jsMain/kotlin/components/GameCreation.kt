@@ -4,6 +4,8 @@ import ComponentStyles
 import components.basic.ButtonColor
 import components.basic.ButtonType
 import components.basic.santaButton
+import createSession
+import kotlinx.coroutines.launch
 import kotlinx.css.*
 import kotlinx.html.InputType
 import kotlinx.html.id
@@ -17,6 +19,7 @@ import react.dom.defaultValue
 import react.dom.div
 import react.router.dom.routeLink
 import shared_models.model.User
+import shared_models.request.CreateSessionRequest
 import styled.*
 import kotlin.js.Date
 
@@ -282,7 +285,17 @@ class GameCreation : RComponent<GameCreationProps, GameCreationState>() {
                         if (state.startDate != null && state.presentDate != null) {
                             if (state.presentDate!!.getTime() > Date.now()) {
                                 if (state.startDate!! >= state.presentDate!!) {
-                                    //TODO: POST-запрос с созданием игры
+                                    mainScope.launch {
+                                        createSession(CreateSessionRequest(
+                                            "",
+                                            props.user.id,
+                                            props.user.telegramId,
+                                            state.giftValue.toInt(),
+                                            state.startDate!!.toDateString(),
+                                            state.presentDate!!.toDateString(),
+                                            3
+                                        ))
+                                    }
                                     setState(
                                         GameCreationState(
                                             state.giftValue,

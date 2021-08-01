@@ -4,9 +4,10 @@ import components.basic.ButtonColor
 import components.basic.ButtonType
 import components.basic.santaButton
 import components.basic.santaInput
+import kotlinx.css.Color
 import kotlinx.css.LinearDimension
+import kotlinx.css.color
 import kotlinx.css.marginTop
-import org.w3c.dom.events.Event
 
 import react.RBuilder
 import react.RComponent
@@ -19,12 +20,13 @@ import styled.styledDiv
 import styled.styledP
 
 external interface LoginProps: RProps {
-    var logginCallback: (String, String) -> Unit
+    var logginCallback: (String, String) -> Boolean
 }
 
 data class LoginState(
     var login: String,
     var password: String,
+    var isShowedMessage: Boolean,
 ): RState
 
 class Login: RComponent<LoginProps, LoginState>() {
@@ -51,7 +53,7 @@ class Login: RComponent<LoginProps, LoginState>() {
                 validation = null
 
                 onChange = { value, _ ->
-                    setState(LoginState(value, state.password))
+                    setState(LoginState(value, state.password, state.isShowedMessage))
                 }
             }
 
@@ -63,7 +65,7 @@ class Login: RComponent<LoginProps, LoginState>() {
                 validation = null
 
                 onChange = { value, _ ->
-                    setState(LoginState(state.login, value))
+                    setState(LoginState(state.login, value, state.isShowedMessage))
                 }
             }
 
@@ -73,11 +75,26 @@ class Login: RComponent<LoginProps, LoginState>() {
                 disabled = false
                 buttonType = ButtonType.SUBMIT
 
-                //TODO: ПЕРЕДАВАТЬ РОДИТЕЛЮ ЛОГИН И ПАРОЛЬ
                 onClick = {
-                    props.logginCallback(state.login,state.password)
+                    val success = props.logginCallback(state.login,state.password)
+                    setState(LoginState(
+                        state.login,
+                        state.password,
+                        success
+                    ))
                 }
             }
+
+            if (state.isShowedMessage) {
+                styledP {
+                    css {
+                        classes = mutableListOf("form-text")
+                        color = Color("#8C1F1F")
+                    }
+                    +"Неверный логин или пароль"
+                }
+            }
+
             br {}
             routeLink("/signup") {
                 styledP {

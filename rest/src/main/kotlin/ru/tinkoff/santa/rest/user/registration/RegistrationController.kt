@@ -25,9 +25,9 @@ class RegistrationController(private val userService: UserService) {
         lastName: String,
         middleName: String?
     ): User {
-        if (userService.getByNickname(nickname) != null) {
+        /*if (userService.getByNickname(nickname) != null) {
             throw RegistrationException(RegistrationStatusCode.NICKNAME_NOT_AVAILABLE)
-        }
+        }*/
         if (userService.getByEmail(email) != null) {
             throw RegistrationException(RegistrationStatusCode.EMAIL_NOT_AVAILABLE)
         }

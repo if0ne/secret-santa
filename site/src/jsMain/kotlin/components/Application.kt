@@ -4,9 +4,8 @@ import auth
 import components.basic.ButtonColor
 import components.basic.ButtonType
 import components.basic.santaButton
-import io.ktor.client.*
-import io.ktor.client.engine.js.*
-import io.ktor.client.features.json.*
+import getSessionInformation
+import getUserSessions
 
 import kotlinx.css.*
 import kotlinx.css.properties.TextDecoration
@@ -22,6 +21,10 @@ import styled.*
 import styled.styledDiv
 
 import kotlinx.coroutines.*
+import shared_models.model.Session
+import shared_models.request.AuthenticationRequest
+import shared_models.request.UserSessionInfoRequest
+import shared_models.response.UserInfoAboutSessionResponse
 
 val mainScope = MainScope()
 
@@ -140,10 +143,11 @@ class Application : RComponent<AppProps, AppState>() {
                                     attrs.logginCallback = { login, password ->
                                         var cachedUser: User? = null
                                         mainScope.launch {
-                                            cachedUser = auth(shared_models.request.AuthenticationRequest(login,password))
+                                            cachedUser = auth(AuthenticationRequest(login,password))
                                         }
 
                                         setState(AppState(cachedUser != null, cachedUser))
+                                        cachedUser != null
                                     }
                                 }
                             }
@@ -160,10 +164,14 @@ class Application : RComponent<AppProps, AppState>() {
                                 }
                             }
                             route("/games", strict = true) {
+                                var userSessions = mutableListOf<Session>()
+                                mainScope.launch {
+                                    userSessions = getUserSessions(state.cachedUser!!) as MutableList<Session>
+                                }
                                 child(GameList::class) {
                                     attrs.user = state.cachedUser!!
                                     attrs.gameList = listOf()
-                                    //TODO: ПОЛУЧИТЬ СПИСОК ВСЕХ ИГР ДЛЯ ПОЛЬЗОВАТЕЛЯ
+                                    attrs.gameList = userSessions
                                 }
                             }
                             route("/create_game", strict = true) {
@@ -172,9 +180,14 @@ class Application : RComponent<AppProps, AppState>() {
                                 }
                             }
                             route<GameId>("/game/:id") {
+                                var sessionInfo: UserInfoAboutSessionResponse? = null
+                                mainScope.launch {
+                                    sessionInfo = getSessionInformation(UserSessionInfoRequest(
+                                        state.cachedUser!!.id, it.match.params.id))
+                                }
                                 child(GameView::class) {
                                     attrs.user = state.cachedUser!!
-                                    //TODO: Получение сессии и доп. инфы
+                                    attrs.info = sessionInfo!!
                                 }
                             }
                         }
