@@ -4,6 +4,7 @@ import components.basic.ButtonColor
 import components.basic.ButtonType
 import components.basic.santaButton
 import components.basic.santaInput
+import getUserById
 import kotlinx.coroutines.launch
 import kotlinx.css.*
 import org.w3c.dom.events.Event
@@ -47,6 +48,7 @@ external interface ProfileProps: RProps {
     var user: User
 
     var logoutCallback: (Event) -> Unit
+    var changeProfileCallback: (User) -> Unit
 }
 
 data class ProfileState(var newUser: User, var isEditTelegram: Boolean, var telegramCode: String): RState
@@ -190,7 +192,11 @@ class Profile(props: ProfileProps): RComponent<ProfileProps, ProfileState>(props
                                     state.telegramCode
                                 ))
 
-                                //TODO: Сделать коллбек к кеш юзеру
+                                if (response) {
+                                    val newUser = getUserById(props.user.id)
+                                    setState(ProfileState(newUser!!, false, ""))
+                                    props.changeProfileCallback(newUser)
+                                }
                             }
                         }
                     }

@@ -140,11 +140,12 @@ class Application : RComponent<AppProps, AppState>() {
                             }
                             route("/login", strict = true) {
                                 child(Login::class) {
-                                    attrs.logginCallback = { login, password ->
+                                    attrs.logginCallback = { login, password, changeLoginState ->
                                         var cachedUser: User? = null
                                         mainScope.launch {
                                             cachedUser = auth(AuthenticationRequest(login,password))
                                             setState(AppState(cachedUser != null, cachedUser))
+                                            changeLoginState()
                                         }
                                     }
                                     attrs.user = state.cachedUser
@@ -159,6 +160,9 @@ class Application : RComponent<AppProps, AppState>() {
                                     attrs.user = state.cachedUser!!
                                     attrs.logoutCallback = {
                                         setState(AppState(false, null))
+                                    }
+                                    attrs.changeProfileCallback = {
+                                        setState(AppState(true, it))
                                     }
                                 }
                             }

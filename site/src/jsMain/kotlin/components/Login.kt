@@ -21,7 +21,7 @@ import styled.styledDiv
 import styled.styledP
 
 external interface LoginProps: RProps {
-    var logginCallback: (String, String) -> Unit
+    var logginCallback: (String, String, () -> Unit) -> Unit
     var user: User?
 }
 
@@ -78,12 +78,13 @@ class Login: RComponent<LoginProps, LoginState>() {
                 buttonType = ButtonType.SUBMIT
 
                 onClick = {
-                    props.logginCallback(state.login,state.password)
-                    setState(LoginState(
-                        state.login,
-                        state.password,
-                        props.user == null
-                    ))
+                    props.logginCallback(state.login,state.password) {
+                        setState(LoginState(
+                            state.login,
+                            state.password,
+                            props.user == null
+                        ))
+                    }
                 }
             }
 
