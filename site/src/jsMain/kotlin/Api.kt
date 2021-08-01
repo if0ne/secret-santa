@@ -22,7 +22,8 @@ enum class RestRoutes(val route: String) {
     LEAVE_FROM_SESSION("/session/leave"),
     CREATE_GIFT("/gift/create"),
     SIGNUP("/user/registration"),
-    SESSION_INFO("/session/userInfo")
+    SESSION_INFO("/session/userInfo"),
+    TELEGRAM("/guid/connect")
 }
 
 const val restUrl = "http://localhost:8081"
@@ -139,7 +140,7 @@ suspend fun createGift(request: CreateGiftRequest): Gift? {
     }
 
     return when(response.status) {
-        HttpStatusCode.OK -> {
+        HttpStatusCode.Created -> {
             response.receive<Gift>()
         }
         else -> {
@@ -159,4 +160,14 @@ suspend fun signup(request: RegistrationRequest): User? {
         HttpStatusCode.Created -> response.receive<User>()
         else -> null
     }
+}
+
+suspend fun telegramConnect(request: ConnectGuidRequest): Boolean {
+    val response = client.post<HttpResponse>(restUrl + RestRoutes.TELEGRAM.route) {
+        method = HttpMethod.Post
+        contentType(ContentType.Application.Json)
+        body = request
+    }
+
+    return response.status == HttpStatusCode.OK
 }

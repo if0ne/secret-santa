@@ -4,16 +4,19 @@ import components.basic.ButtonColor
 import components.basic.ButtonType
 import components.basic.santaButton
 import components.basic.santaInput
+import kotlinx.coroutines.launch
 import kotlinx.css.*
 import org.w3c.dom.events.Event
 import react.*
 import react.dom.attrs
 import react.router.dom.routeLink
 import shared_models.model.User
+import shared_models.request.ConnectGuidRequest
 import styled.css
 import styled.styledDiv
 import styled.styledImg
 import styled.styledP
+import telegramConnect
 
 fun RBuilder.buildImage(href: String): ReactElement {
     return styledDiv {
@@ -46,12 +49,12 @@ external interface ProfileProps: RProps {
     var logoutCallback: (Event) -> Unit
 }
 
-data class ProfileState(var isEditTelegram: Boolean, var telegramCode: String): RState
+data class ProfileState(var newUser: User, var isEditTelegram: Boolean, var telegramCode: String): RState
 
-class Profile: RComponent<ProfileProps, ProfileState>() {
+class Profile(props: ProfileProps): RComponent<ProfileProps, ProfileState>(props) {
 
     init {
-        state.isEditTelegram = false
+        setState(ProfileState(props.user, false, ""))
     }
 
     override fun RBuilder.render() {
@@ -67,7 +70,7 @@ class Profile: RComponent<ProfileProps, ProfileState>() {
             css {
                 classes = mutableListOf("row")
             }
-            buildImage(props.user.avatarUrl ?: "")
+            buildImage(props.user.avatarUrl ?: "https://www.pinclipart.com/picdir/big/564-5646085_santa-claus-logo-png-clipart.png")
             styledDiv {
                 css {
                     classes = mutableListOf("col-8")
@@ -114,7 +117,7 @@ class Profile: RComponent<ProfileProps, ProfileState>() {
                             buttonType = ButtonType.WIDTH_WITH_MARGIN
 
                             onClick = {
-                                setState(ProfileState(!state.isEditTelegram, ""))
+                                setState(ProfileState(state.newUser, !state.isEditTelegram, ""))
                             }
                         }
                     }
@@ -171,7 +174,7 @@ class Profile: RComponent<ProfileProps, ProfileState>() {
                         validation = null
 
                         onChange = { value, _ ->
-                            setState(ProfileState(state.isEditTelegram, value))
+                            setState(ProfileState(state.newUser, state.isEditTelegram, value))
                         }
                     }
                     santaButton {
@@ -181,7 +184,14 @@ class Profile: RComponent<ProfileProps, ProfileState>() {
                         buttonType = ButtonType.WIDTH_WITH_MARGIN
 
                         onClick = {
-                            //TODO: ЗАПРОС НА СВЯЗЫВАНИЕ
+                            mainScope.launch {
+                                val response = telegramConnect(ConnectGuidRequest(
+                                    props.user.id,
+                                    state.telegramCode
+                                ))
+
+                                //TODO: Сделать коллбек к кеш юзеру
+                            }
                         }
                     }
                 }

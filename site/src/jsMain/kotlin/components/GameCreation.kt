@@ -34,6 +34,11 @@ enum class WrongConfig(val message: String) {
     EARLY("Дата должна быть позже, чем сегодняшняя дата")
 }
 
+//ПРОСТО ЛУЧШЕ НЕ ТРОГАТЬ
+//ЖЕЛАТЕЛЬНО ПЕРЕПИСАТЬ
+fun Date.toOurFormat(): String =
+    "${this.getFullYear()}-${this.getMonth()}-${this.getDate()} ${if (this.getHours() < 10) "0"+this.getHours().toString() else this.getHours()}:${if (this.getMinutes() < 10) "0"+this.getMinutes() else this.getMinutes()}"
+
 data class GameCreationState(
     var giftValue: String,
     var presentDate: Date?,
@@ -127,7 +132,6 @@ class GameCreation : RComponent<GameCreationProps, GameCreationState>() {
                                 state.presentDate?.getHours() ?: 0,
                                 state.presentDate?.getMinutes() ?: 0
                             )
-                            console.log(withTime)
                             setState(
                                 GameCreationState(
                                     state.giftValue,
@@ -158,7 +162,6 @@ class GameCreation : RComponent<GameCreationProps, GameCreationState>() {
                             pureTime[0].toInt(),
                             pureTime[1].toInt()
                         )
-                        console.log(withDate)
                         setState(
                             GameCreationState(
                                 state.giftValue,
@@ -190,7 +193,6 @@ class GameCreation : RComponent<GameCreationProps, GameCreationState>() {
                                 state.startDate?.getHours() ?: 0,
                                 state.startDate?.getMinutes() ?: 0
                             )
-                            console.log(withTime)
                             setState(
                                 GameCreationState(
                                     state.giftValue,
@@ -219,7 +221,6 @@ class GameCreation : RComponent<GameCreationProps, GameCreationState>() {
                             pureTime[0].toInt(),
                             pureTime[1].toInt()
                         )
-                        console.log(withDate)
                         setState(
                             GameCreationState(
                                 state.giftValue,
@@ -291,20 +292,20 @@ class GameCreation : RComponent<GameCreationProps, GameCreationState>() {
                                             props.user.id,
                                             props.user.telegramId,
                                             state.giftValue.toInt(),
-                                            state.startDate!!.toDateString(),
-                                            state.presentDate!!.toDateString(),
+                                            state.startDate!!.toOurFormat(),
+                                            state.presentDate!!.toOurFormat(),
                                             3
                                         ))
-                                    }
-                                    setState(
-                                        GameCreationState(
-                                            state.giftValue,
-                                            state.presentDate,
-                                            state.startDate,
-                                            state.wrongConfig,
-                                            true
+                                        setState(
+                                            GameCreationState(
+                                                state.giftValue,
+                                                state.presentDate,
+                                                state.startDate,
+                                                state.wrongConfig,
+                                                true
+                                            )
                                         )
-                                    )
+                                    }
                                 } else {
                                     setState(
                                         GameCreationState(

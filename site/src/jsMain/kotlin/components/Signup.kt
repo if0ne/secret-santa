@@ -4,7 +4,7 @@ import components.basic.ButtonColor
 import components.basic.ButtonType
 import components.basic.santaButton
 import components.basic.santaInput
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.css.*
 import react.RBuilder
 import react.RComponent
@@ -241,27 +241,26 @@ class Signup: RComponent<RProps, SignupState>() {
                                 state.email.second &&
                                 state.phone.second &&
                                 state.password.second) {
-                                var user: User? = null
                                 mainScope.launch {
-                                    user = signup(RegistrationRequest(
-                                        "user${state.lastName}",
+                                    var user = signup(RegistrationRequest(
+                                        state.phone.first,
                                         state.email.first,
                                         state.password.first,
                                         state.firstName.first,
                                         state.lastName.first,
                                         state.middleName
                                     ))
+                                    setState(SignupState(
+                                        state.firstName,
+                                        state.lastName,
+                                        state.middleName,
+                                        state.email,
+                                        state.password,
+                                        state.phone,
+                                        user != null,
+                                        user == null
+                                    ))
                                 }
-                                setState(SignupState(
-                                    state.firstName,
-                                    state.lastName,
-                                    state.middleName,
-                                    state.email,
-                                    state.password,
-                                    state.phone,
-                                    user != null,
-                                    user == null
-                                ))
                             }
                         }
                     }

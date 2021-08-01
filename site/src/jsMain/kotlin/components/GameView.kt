@@ -2,6 +2,7 @@ package components
 
 import components.basic.*
 import createGift
+import getSessionInformation
 import kotlinx.coroutines.launch
 import kotlinx.css.*
 import react.*
@@ -9,32 +10,42 @@ import react.dom.attrs
 import react.dom.p
 import removeMemberFromGame
 import shared_models.model.Gift
+import shared_models.model.Session
 import shared_models.model.SessionState
 import shared_models.model.User
 import shared_models.request.CreateGiftRequest
 import shared_models.request.LeaveRequest
+import shared_models.request.UserSessionInfoRequest
 import shared_models.response.UserInfoAboutSessionResponse
 import styled.*
 
-//TODO: ПОФИКСИТЬ БАГ С ВЫВОДОМ ПОДАРКОВ
 external interface GameViewProps: RProps {
     var user: User
-    var info: UserInfoAboutSessionResponse
+    var gameId: Int
 }
 
 data class GameViewState(
     var isNewGift: Boolean,
-    var gifts: MutableList<Gift>,
+    var info: UserInfoAboutSessionResponse,
 
     var giftName: Pair<String, Boolean>,
     var giftDesc: String
 ): RState
 
-class GameView: RComponent<GameViewProps, GameViewState>() {
+class GameView(props: GameViewProps): RComponent<GameViewProps, GameViewState>(props) {
 
-    override fun GameViewState.init() {
-        setState {
-
+    init {
+        state.info = UserInfoAboutSessionResponse(
+            props.user,
+            Session(0, "", SessionState.LOBBY, "", 0, 0, 0, "", ""),
+            listOf(),
+            listOf(),
+            props.user,
+            listOf()
+        )
+        mainScope.launch {
+            val session = getSessionInformation(UserSessionInfoRequest(props.user.id, props.gameId))
+            setState(GameViewState(state.isNewGift, session!!, state.giftName, state.giftDesc))
         }
     }
 
@@ -56,7 +67,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     }
 
                     attrs {
-                        src = user.avatarUrl ?: ""
+                        src = user.avatarUrl ?: "https://www.pinclipart.com/picdir/big/564-5646085_santa-claus-logo-png-clipart.png"
                     }
                 }
                 styledDiv {
@@ -71,8 +82,8 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                         }
                         +"${props.user.lastName} ${props.user.firstName}"
                     }
-                    if (props.user.id == props.info.session.hostId &&
-                        props.info.session.currentState == SessionState.LOBBY &&
+                    if (props.user.id == state.info.session.hostId &&
+                        state.info.session.currentState == SessionState.LOBBY &&
                         props.user.id != user.id) {
                         santaButton {
                             text = "Удалить"
@@ -83,8 +94,19 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                                 mainScope.launch {
                                     removeMemberFromGame(LeaveRequest(
                                         user.id,
-                                        props.info.session.id
+                                        state.info.session.id
                                     ))
+
+                                    val newUsers = state.info.users.filter { it.id != user.id }
+                                    val newInfo = UserInfoAboutSessionResponse(
+                                        state.info.user,
+                                        state.info.session,
+                                        newUsers,
+                                        state.info.userGifts,
+                                        state.info.giftReceivingUser,
+                                        state.info.receivingUserGifts
+                                    )
+                                    setState(GameViewState(state.isNewGift, newInfo, state.giftName, state.giftDesc))
                                 }
                             }
                         }
@@ -135,14 +157,14 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     fontSize = (1.25).rem
                     margin = "0"
                 }
-                +"Игра №${props.info.session.id}"
+                +"Игра №${state.info.session.id}"
             }
 
             styledP {
                 css {
                     margin = "0"
                 }
-                +"Дата мероприятия: ${props.info.session.eventTimestamp}"
+                +"Дата мероприятия: ${state.info.session.eventTimestamp}"
             }
 
             styledP {
@@ -151,7 +173,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     css {
                         fontWeight = FontWeight.bold
                     }
-                    +"${props.info.session.budget}₽"
+                    +"${state.info.session.budget}₽"
                 }
             }
         }
@@ -185,7 +207,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                             textAlign = TextAlign.center
                             fontSize = (1.25).rem
                         }
-                        +(props.info.session.guid ?: "")
+                        +(state.info.session.guid ?: "")
                     }
                 }
             }
@@ -206,7 +228,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     classes = mutableListOf("row","row-cols-1","row-cols-md-3","g-4")
                 }
 
-                for (item in state.gifts) {
+                for (item in state.info.userGifts) {
                     giftCard(item)
                 }
             }
@@ -231,7 +253,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                         onChange = { value, valid ->
                             setState(GameViewState(
                                 state.isNewGift,
-                                state.gifts,
+                                state.info,
                                 Pair(value, valid),
                                 state.giftDesc
                             ))
@@ -245,7 +267,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                         onChange = { value ->
                             setState(GameViewState(
                                 state.isNewGift,
-                                state.gifts,
+                                state.info,
                                 state.giftName,
                                 value
                             ))
@@ -269,7 +291,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                         buttonType = ButtonType.WIDTH_WITH_MARGIN
 
                         onClick = {
-                            setState(GameViewState(!state.isNewGift, state.gifts, state.giftName, state.giftDesc))
+                            setState(GameViewState(!state.isNewGift, state.info, state.giftName, state.giftDesc))
                         }
                     }
                 }
@@ -288,19 +310,26 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
 
                             onClick = {
                                 if (state.giftName.second) {
-                                    val newGifts = state.gifts
-                                    var gift: Gift? = null
                                     mainScope.launch {
-                                        gift = createGift(CreateGiftRequest(
+                                        val gift = createGift(CreateGiftRequest(
                                             props.user.id,
-                                            props.info.session.id,
+                                            state.info.session.id,
                                             state.giftName.first,
                                             state.giftDesc
                                         ))
-                                    }
-                                    if (gift != null) {
-                                        newGifts.add(gift!!)
-                                        setState(GameViewState(!state.isNewGift,newGifts, Pair("", false), ""))
+                                        if (gift != null) {
+                                            val newGifts = state.info.userGifts as MutableList
+                                            newGifts.add(gift)
+                                            val newInfo = UserInfoAboutSessionResponse(
+                                                state.info.user,
+                                                state.info.session,
+                                                state.info.users,
+                                                newGifts,
+                                                state.info.giftReceivingUser,
+                                                state.info.receivingUserGifts
+                                            )
+                                            setState(GameViewState(false, newInfo, Pair("", false), ""))
+                                        }
                                     }
                                 }
                             }
@@ -323,7 +352,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     classes = mutableListOf("row","row-cols-1","row-cols-md-4","g-4")
                 }
 
-                props.info.users.forEach {
+                state.info.users.forEach {
                     memberCard(it)
                 }
             }
@@ -356,7 +385,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     width = 18.rem
                 }
 
-                memberCard(props.info.giftReceivingUser!!)
+                memberCard(state.info.giftReceivingUser!!)
             }
 
             styledDiv {
@@ -364,7 +393,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
                     classes = mutableListOf("row","row-cols-1","row-cols-md-3","g-4")
                 }
 
-                props.info.receivingUserGifts.forEach {
+                state.info.receivingUserGifts.forEach {
                     giftCard(it)
                 }
             }
@@ -372,7 +401,7 @@ class GameView: RComponent<GameViewProps, GameViewState>() {
     }
 
     override fun RBuilder.render() {
-        if (props.info.session.currentState == SessionState.LOBBY) {
+        if (state.info.session.currentState == SessionState.LOBBY) {
             unstartedGame()
         } else {
             startedGame()

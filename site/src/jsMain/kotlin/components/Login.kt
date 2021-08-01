@@ -15,12 +15,14 @@ import react.RProps
 import react.RState
 import react.dom.br
 import react.router.dom.routeLink
+import shared_models.model.User
 import styled.css
 import styled.styledDiv
 import styled.styledP
 
 external interface LoginProps: RProps {
-    var logginCallback: (String, String) -> Boolean
+    var logginCallback: (String, String) -> Unit
+    var user: User?
 }
 
 data class LoginState(
@@ -76,14 +78,16 @@ class Login: RComponent<LoginProps, LoginState>() {
                 buttonType = ButtonType.SUBMIT
 
                 onClick = {
-                    val success = props.logginCallback(state.login,state.password)
+                    props.logginCallback(state.login,state.password)
                     setState(LoginState(
                         state.login,
                         state.password,
-                        success
+                        props.user == null
                     ))
                 }
             }
+
+            br{}
 
             if (state.isShowedMessage) {
                 styledP {
@@ -95,7 +99,6 @@ class Login: RComponent<LoginProps, LoginState>() {
                 }
             }
 
-            br {}
             routeLink("/signup") {
                 styledP {
                     css {

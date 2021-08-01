@@ -144,11 +144,10 @@ class Application : RComponent<AppProps, AppState>() {
                                         var cachedUser: User? = null
                                         mainScope.launch {
                                             cachedUser = auth(AuthenticationRequest(login,password))
+                                            setState(AppState(cachedUser != null, cachedUser))
                                         }
-
-                                        setState(AppState(cachedUser != null, cachedUser))
-                                        cachedUser != null
                                     }
+                                    attrs.user = state.cachedUser
                                 }
                             }
                             route("/signup", strict = true) {
@@ -164,14 +163,8 @@ class Application : RComponent<AppProps, AppState>() {
                                 }
                             }
                             route("/games", strict = true) {
-                                var userSessions = mutableListOf<Session>()
-                                mainScope.launch {
-                                    userSessions = getUserSessions(state.cachedUser!!) as MutableList<Session>
-                                }
                                 child(GameList::class) {
                                     attrs.user = state.cachedUser!!
-                                    attrs.gameList = listOf()
-                                    attrs.gameList = userSessions
                                 }
                             }
                             route("/create_game", strict = true) {
@@ -180,14 +173,9 @@ class Application : RComponent<AppProps, AppState>() {
                                 }
                             }
                             route<GameId>("/game/:id") {
-                                var sessionInfo: UserInfoAboutSessionResponse? = null
-                                mainScope.launch {
-                                    sessionInfo = getSessionInformation(UserSessionInfoRequest(
-                                        state.cachedUser!!.id, it.match.params.id))
-                                }
                                 child(GameView::class) {
                                     attrs.user = state.cachedUser!!
-                                    attrs.info = sessionInfo!!
+                                    attrs.gameId = it.match.params.id
                                 }
                             }
                         }
