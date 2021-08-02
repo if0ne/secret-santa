@@ -13,6 +13,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import ru.rsreu.AppConfig
 import ru.tinkoff.sanata.shared_models.model.Session
+import ru.tinkoff.sanata.shared_models.model.User
 import ru.tinkoff.sanata.shared_models.request.CreateGuidRequest
 import ru.tinkoff.sanata.shared_models.request.CreateSessionRequest
 
@@ -32,7 +33,6 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                     text = "Добро пожаловать в Тайного Санту",
                     buttons = buttons.getButtons(ButtonsType.START_BUTTONS)
                 )
-
             }
 
             callbackQuery("register") {
@@ -61,27 +61,19 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                 }
             }
 
-            callbackQuery("create") {
+            command("info"){
+                val id = message.chat.id
                 runBlocking {
-                    val id = callbackQuery.from.id
-                    val response = client.post<HttpResponse>(config.server.url + config.server.createSessionRoute) {
-                        method = HttpMethod.Post
+                    val response = client.get<HttpResponse>(config.server.url + "user/telegram/$id") {
+                        method = HttpMethod.Get
                         contentType(ContentType.Application.Json)
-                        body = CreateSessionRequest(
-                            "ОПИСАНИЕ",
-                            null,
-                            id,
-                            10000,
-                            "2021-12-31 12:00",
-                            "2021-12-20 12:00",
-                            5
-                        )
                     }
-                    when (response.status) {
-                        HttpStatusCode.Created -> {
+                    when(response.status){
+                        HttpStatusCode.OK -> {
+                            val user = response.receive<User>()
                             bot.sendMsg(
-                                chatId = callbackQuery.from.id,
-                                text = "Успешно создалось"
+                                chatId = id,
+                                text = user.toString()
                             )
                         }
                     }
@@ -89,22 +81,33 @@ class SantaBot(config: AppConfig, client: HttpClient) {
             }
 
             callbackQuery("sessions") {
+                val id = callbackQuery.from.id
                 runBlocking {
-                    val id = callbackQuery.from.id
-                    val response =
-                        client.get<HttpResponse>(config.server.url + config.server.getSessionRoute + id.toString()) {
-                            method = HttpMethod.Get
-                            contentType(ContentType.Application.Json)
-                        }
-                    when (response.status) {
+                    val response = client.get<HttpResponse>(config.server.url + "user/telegram/$id") {
+                        method = HttpMethod.Get
+                        contentType(ContentType.Application.Json)
+                    }
+                    when(response.status){
                         HttpStatusCode.OK -> {
-                            val sessions = response.receive<List<Session?>>()
-                            sessions.forEach {
-                                bot.sendMsg(
-                                    chatId = callbackQuery.from.id,
-                                    text = it.toString(),
-                                    buttons = buttons.getButtons(ButtonsType.LOBBY_BUTTONS)
-                                )
+                            val user = response.receive<User>()
+                            runBlocking {
+                                val response =
+                                    client.get<HttpResponse>(config.server.url + config.server.getSessionRoute + id.toString()) {
+                                        method = HttpMethod.Get
+                                        contentType(ContentType.Application.Json)
+                                    }
+                                when (response.status) {
+                                    HttpStatusCode.OK -> {
+                                        val sessions = response.receive<List<Session>>()
+                                        sessions.forEach {
+                                            bot.sendMsg(
+                                                chatId = callbackQuery.from.id,
+                                                text = it.toString(),
+                                                buttons = buttons.getUserInfoAboutSessionButton(user.id, it.id)
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -116,12 +119,6 @@ class SantaBot(config: AppConfig, client: HttpClient) {
     fun start() = telegramBot.startWebhook()
 
     fun processUpdate(receiveBody: String) = telegramBot.processUpdate(receiveBody)
-
-    private fun getGUID() = "{6F9619FF-8B86-D011-B42D-00CF4FC964FF}"
-
-    fun sendMe(text: String) {
-        telegramBot.sendMsg(383852636, text)
-    }
 
     fun remindToEndSession(userId: Long) {
         telegramBot.sendMsg(

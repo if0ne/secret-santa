@@ -14,5 +14,6 @@ data class ServerConfig(
 )
 
 data class TelegramConfig(
-    val url: String
+    val url: String,
+    val notificationRoute: String
 )
