@@ -1,17 +1,11 @@
 package ru.tinkoff.sanata.shared_models.model
 
-import kotlinx.serialization.Contextual
-import java.util.*
-
 import kotlinx.serialization.Serializable
-import ru.tinkoff.sanata.shared_models.model.serialization.UUIDSerializer
 
 @Serializable
 data class User(
     val id: Int,
-    @Serializable(with = UUIDSerializer::class)
-    val telegramGuid: UUID?,
-    val nickname: String,
+    val phone: String,
     val email: String,
     val password: ByteArray,
     val firstName: String,
@@ -27,8 +21,7 @@ data class User(
         other as User
 
         if (id != other.id) return false
-        if (telegramGuid != other.telegramGuid) return false
-        if (nickname != other.nickname) return false
+        if (phone != other.phone) return false
         if (email != other.email) return false
         if (!password.contentEquals(other.password)) return false
         if (firstName != other.firstName) return false
@@ -42,8 +35,7 @@ data class User(
 
     override fun hashCode(): Int {
         var result = id
-        result = 31 * result + telegramGuid.hashCode()
-        result = 31 * result + nickname.hashCode()
+        result = 31 * result + phone.hashCode()
         result = 31 * result + email.hashCode()
         result = 31 * result + password.contentHashCode()
         result = 31 * result + firstName.hashCode()

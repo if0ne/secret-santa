@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class AuthenticationStatusCode {
-    USER_NAME_NOT_EXISTS,
+    USER_NOT_EXISTS,
     INVALID_PASSWORD,
 }

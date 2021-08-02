@@ -36,8 +36,7 @@ fun Application.guidModule() {
                     runCatching {
                         call.receive<ConnectGuidRequest>()
                     }.onSuccess {
-                        guidController.connect(UUID.fromString(it.telegramGuid), it.id)
-                        call.respond(HttpStatusCode.OK)
+                        call.respond(HttpStatusCode.OK, guidController.connect(UUID.fromString(it.telegramGuid), it.id))
                     }.onFailure {
                         throw IllegalArgumentException()
                     }

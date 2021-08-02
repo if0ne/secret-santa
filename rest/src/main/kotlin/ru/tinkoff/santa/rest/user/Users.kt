@@ -3,8 +3,7 @@ package ru.tinkoff.santa.rest.user
 import org.jetbrains.exposed.dao.id.IntIdTable
 
 object Users : IntIdTable() {
-    val telegramGuid = uuid("telegram_guid").nullable()
-    val nickname = varchar("nickname", 30)
+    val phone = varchar("phone", 15)
     val email = varchar("email", 254)
     val password = binary("password")
     val firstName = text("first_name")

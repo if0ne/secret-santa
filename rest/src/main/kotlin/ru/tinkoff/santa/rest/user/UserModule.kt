@@ -9,6 +9,7 @@ import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
 import ru.tinkoff.sanata.shared_models.request.AuthenticationRequest
 import ru.tinkoff.sanata.shared_models.request.RegistrationRequest
+import ru.tinkoff.sanata.shared_models.request.SetAvatarUrlRequest
 import ru.tinkoff.santa.rest.user.authentication.AuthenticationController
 import ru.tinkoff.santa.rest.user.exception.UserNotFoundException
 import ru.tinkoff.santa.rest.user.registration.RegistrationController
@@ -41,7 +42,7 @@ fun Application.userModule() {
                         call.respond(
                             HttpStatusCode.Created,
                             registrationController.register(
-                                it.nickname,
+                                it.phone,
                                 it.email,
                                 it.password,
                                 it.firstName,
@@ -54,24 +55,32 @@ fun Application.userModule() {
                     }
                 }
             }
+
+            route("/avatarUrl") {
+                post {
+                    runCatching {
+                        call.receive<SetAvatarUrlRequest>()
+                    }.onSuccess {
+                        userService.setAvatarUrl(it.userId, it.avatarUrl)
+                        call.respond(HttpStatusCode.OK)
+                    }.onFailure {
+                        throw IllegalArgumentException()
+                    }
+                }
+            }
+
             route("/emailfree/{email}") {
                 get {
                     call.respond(HttpStatusCode.OK, userService.getByEmail(call.parameters["email"].toString()) == null)
                 }
             }
-            route("/nicknamefree/{nickname}") {
-                get {
-                    call.respond(
-                        HttpStatusCode.OK,
-                        userService.getByNickname(call.parameters["nickname"].toString()) == null
-                    )
-                }
-            }
+
             route("/checkpassword") {
                 post {
                     call.respond(HttpStatusCode.OK, call.receiveText().isPasswordSafety())
                 }
             }
+
             route("/info/{id}") {
                 get {
                     call.respond(

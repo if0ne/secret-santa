@@ -78,22 +78,6 @@ class SessionDao(private val database: Database) {
         }
     }
 
-    fun setCurrentState(sessionId: Int, state: SessionState) {
-        val session = getById(sessionId)
-        if (session != null) {
-            update(
-                session.id,
-                state,
-                session.description,
-                session.hostId,
-                session.budget,
-                session.minPlayersQuantity,
-                session.eventTimestamp,
-                session.timestampToChoose
-            )
-        }
-    }
-
     fun delete(id: Int) {
         Sessions.deleteWhere {
             Sessions.id eq id
