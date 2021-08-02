@@ -69,6 +69,17 @@ fun Application.userModule() {
                 }
             }
 
+            route("telegram/{id}"){
+                get{
+                    val userTelegramId = call.parameters["id"]?.toLong()
+                    if (userTelegramId != null) {
+                        call.respond(HttpStatusCode.OK, userService.checkAndGetUserByTelegramId(userTelegramId))
+                    } else {
+                        throw IllegalArgumentException()
+                    }
+                }
+            }
+
             route("/emailfree/{email}") {
                 get {
                     call.respond(HttpStatusCode.OK, userService.getByEmail(call.parameters["email"].toString()) == null)

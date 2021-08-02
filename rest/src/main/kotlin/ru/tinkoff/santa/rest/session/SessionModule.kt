@@ -17,7 +17,6 @@ import java.util.*
 
 fun Application.sessionModule() {
     val sessionController: SessionController by closestDI().instance()
-
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
     routing {
@@ -31,6 +30,12 @@ fun Application.sessionModule() {
             route("/finish/{id}") {
                 get {
                     sessionController.finish(call.parameters["id"]!!.toInt())
+                }
+            }
+
+            route("/notifications") {
+                get {
+                    call.respond(HttpStatusCode.OK, sessionController.updateSessionsStatesAndGetChangeNotifications())
                 }
             }
 
