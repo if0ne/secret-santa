@@ -21,6 +21,15 @@ fun Application.sessionModule() {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
     routing {
+        route("lol") {
+            get {
+                println(LocalDateTime.now())
+                sessionController.updateSessionsStatesAndGetChangeNotifications()
+                // Сравниваем даты отправляем оповещения в ответ
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+
         route("/session") {
             route("/start/{id}") {
                 get {

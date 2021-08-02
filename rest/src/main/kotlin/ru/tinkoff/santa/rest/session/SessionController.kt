@@ -1,9 +1,6 @@
 package ru.tinkoff.santa.rest.session
 
-import ru.tinkoff.sanata.shared_models.model.Gift
-import ru.tinkoff.sanata.shared_models.model.Session
-import ru.tinkoff.sanata.shared_models.model.SessionState
-import ru.tinkoff.sanata.shared_models.model.User
+import ru.tinkoff.sanata.shared_models.model.*
 import ru.tinkoff.sanata.shared_models.response.UserInfoAboutSessionResponse
 import ru.tinkoff.santa.rest.gift.GiftService
 import ru.tinkoff.santa.rest.gift_giving.GiftGivingService
@@ -94,10 +91,15 @@ class SessionController(
     }
 
     fun finish(sessionId: Int) {
-        sessionService.checkAndGetSession(sessionId)
+        sessionService.checkSession(sessionId)
         sessionService.checkCurrentStateIsGame(sessionId)
         sessionService.finishSession(sessionId)
         // мб удалять данные из таблиц
+    }
+
+    private fun prematureFinish(sessionId: Int) {
+        sessionService.checkSession(sessionId)
+        sessionService.finishSession(sessionId)
     }
 
     fun joinOnSession(userId: Int, sessionGuid: UUID): Session {
@@ -166,6 +168,56 @@ class SessionController(
 
     private fun getUsersInSession(sessionId: Int): List<User> = userSessionService.getBySessionId(sessionId).map {
         userService.getById(it.userId)!!
+    }
+
+    fun updateSessionsStatesAndGetChangeNotifications(): List<ChangeNotification> {
+        val sessions = updateSessionsStates().map {
+            ChangeNotification(
+                it,
+                getUsersInSession(it.id)
+            )
+        }
+        print(sessions)
+        return sessions
+    }
+
+    private fun updateSessionsStates(): List<Session> {
+        return sessionService.getAll().filter {
+            checkAndUpdateSessionState(it.id)
+        }.map { sessionService.getById(it.id)!! }
+    }
+
+    private fun checkAndUpdateSessionState(sessionId: Int): Boolean {
+        val session = sessionService.checkAndGetSession(sessionId)
+        return when (session.currentState) {
+            SessionState.LOBBY -> isSessionNeedStart(sessionId)
+            SessionState.GAME -> isSessionNeedFinish(sessionId)
+            else -> false
+        }
+    }
+
+    private fun isSessionNeedStart(sessionId: Int): Boolean {
+        val time = LocalDateTime.now()
+        val session = sessionService.checkAndGetSession(sessionId)
+        if (time >= session.timestampToChoose) {
+            if (getUsersNumberInSession(sessionId) >= session.minPlayersQuantity) {
+                start(sessionId)
+            } else {
+                prematureFinish(sessionId)
+            }
+            return true
+        }
+        return false
+    }
+
+    private fun isSessionNeedFinish(sessionId: Int): Boolean {
+        val time = LocalDateTime.now()
+        val session = sessionService.checkAndGetSession(sessionId)
+        if (time >= session.eventTimestamp) {
+            finish(sessionId)
+            return true
+        }
+        return false
     }
 
     fun getUsersNumberInSession(sessionId: Int): Int = getUsersInSession(sessionId).size
