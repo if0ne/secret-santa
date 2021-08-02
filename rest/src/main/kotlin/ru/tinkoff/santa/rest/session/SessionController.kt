@@ -170,16 +170,14 @@ class SessionController(
         userService.getById(it.userId)!!
     }
 
-    fun updateSessionsStatesAndGetChangeNotifications(): List<ChangeNotification> {
-        val sessions = updateSessionsStates().map {
+    fun updateSessionsStatesAndGetChangeNotifications(): List<ChangeNotification> =
+        updateSessionsStates().map {
             ChangeNotification(
                 it,
                 getUsersInSession(it.id)
             )
         }
-        print(sessions)
-        return sessions
-    }
+
 
     private fun updateSessionsStates(): List<Session> {
         return sessionService.getAll().filter {
