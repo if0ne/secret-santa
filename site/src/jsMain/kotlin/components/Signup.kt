@@ -242,14 +242,19 @@ class Signup: RComponent<RProps, SignupState>() {
                                 state.phone.second &&
                                 state.password.second) {
                                 mainScope.launch {
-                                    var user = signup(RegistrationRequest(
-                                        state.phone.first,
-                                        state.email.first,
-                                        state.password.first,
-                                        state.firstName.first,
-                                        state.lastName.first,
-                                        state.middleName
-                                    ))
+                                    var user: User? = null
+                                    try {
+                                        user = signup(
+                                            RegistrationRequest(
+                                                state.phone.first,
+                                                state.email.first,
+                                                state.password.first,
+                                                state.firstName.first,
+                                                state.lastName.first,
+                                                state.middleName
+                                            )
+                                        )
+                                    } catch (ex: Exception) {}
                                     setState(SignupState(
                                         state.firstName,
                                         state.lastName,
@@ -271,6 +276,7 @@ class Signup: RComponent<RProps, SignupState>() {
                             css {
                                 classes = mutableListOf("form-text")
                                 color = Color("#8C1F1F")
+                                margin = "0"
                             }
                             +"Почта уже зарегистрирована"
                         }

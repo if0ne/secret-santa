@@ -141,9 +141,11 @@ class Application : RComponent<AppProps, AppState>() {
                             route("/login", strict = true) {
                                 child(Login::class) {
                                     attrs.logginCallback = { login, password, changeLoginState ->
-                                        var cachedUser: User? = null
                                         mainScope.launch {
-                                            cachedUser = auth(AuthenticationRequest(login,password))
+                                            var cachedUser: User? = null
+                                            try {
+                                                cachedUser = auth(AuthenticationRequest(login,password))
+                                            } catch (ex: Exception) {}
                                             setState(AppState(cachedUser != null, cachedUser))
                                             changeLoginState()
                                         }

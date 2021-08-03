@@ -5,8 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class User(
     val id: Int,
-    val telegramGuid: String?,
-    val nickname: String,
+    val phone: String,
     val email: String,
     val password: ByteArray,
     val firstName: String,
@@ -17,12 +16,10 @@ data class User(
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-
         other as User
 
         if (id != other.id) return false
-        if (telegramGuid != other.telegramGuid) return false
-        if (nickname != other.nickname) return false
+        if (phone != other.phone) return false
         if (email != other.email) return false
         if (!password.contentEquals(other.password)) return false
         if (firstName != other.firstName) return false
@@ -36,8 +33,7 @@ data class User(
 
     override fun hashCode(): Int {
         var result = id
-        result = 31 * result + telegramGuid.hashCode()
-        result = 31 * result + nickname.hashCode()
+        result = 31 * result + phone.hashCode()
         result = 31 * result + email.hashCode()
         result = 31 * result + password.contentHashCode()
         result = 31 * result + firstName.hashCode()

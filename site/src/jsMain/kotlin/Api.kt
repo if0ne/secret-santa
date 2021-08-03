@@ -24,7 +24,8 @@ enum class RestRoutes(val route: String) {
     SIGNUP("/user/registration"),
     SESSION_INFO("/session/userInfo"),
     TELEGRAM("/guid/connect"),
-    USER_BY_ID("/user/info/")
+    USER_BY_ID("/user/info/"),
+    SET_AVATAR("/user/avatarUrl")
 }
 
 const val restUrl = "http://localhost:8081"
@@ -182,5 +183,18 @@ suspend fun getUserById(id: Int): User? {
     return when(response.status) {
         HttpStatusCode.OK -> response.receive<User>()
         else -> null
+    }
+}
+
+suspend fun connectAvatar(request: SetAvatarUrlRequest): Boolean {
+    val response = client.post<HttpResponse>(restUrl + RestRoutes.SET_AVATAR.route) {
+        method = HttpMethod.Post
+        contentType(ContentType.Application.Json)
+        body = request
+    }
+
+    return when(response.status) {
+        HttpStatusCode.OK -> true
+        else -> false
     }
 }
