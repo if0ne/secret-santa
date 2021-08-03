@@ -7,6 +7,6 @@ class TgButtons {
     fun getButtons(type: ButtonsType) = type.getButtons()
 
     fun getUserInfoAboutSessionButton(userId: Int, sessionId: Int) = InlineKeyboardMarkup.createSingleRowKeyboard(
-        InlineKeyboardButton.CallbackData("Больше информации", "info $userId $sessionId")
+        InlineKeyboardButton.CallbackData("Больше информации", "userSessionInfo $userId $sessionId")
     )
 }

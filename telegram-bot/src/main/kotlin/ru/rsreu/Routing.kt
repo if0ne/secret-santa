@@ -5,6 +5,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import ru.rsreu.bot.SantaBot
 import ru.tinkoff.sanata.shared_models.model.ChangeNotification
+import ru.tinkoff.sanata.shared_models.model.SessionState
 
 fun Application.configureRouting(bot: SantaBot) {
 
@@ -16,7 +17,12 @@ fun Application.configureRouting(bot: SantaBot) {
         }
         post("/notifications"){
             val request = call.receive<List<ChangeNotification>>()
-            print(request)
+            request.forEach {
+                when(it.session.currentState){
+                    SessionState.GAME -> bot.remindToStartSession(it.session, it.users)
+                    SessionState.FINISH -> bot.remindToEndSession(it.session, it.users)
+                }
+            }
             call.respond(HttpStatusCode.OK)
         }
     }

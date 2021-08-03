@@ -6,18 +6,13 @@ import com.github.kotlintelegrambot.entities.keyboard.InlineKeyboardButton
 enum class ButtonsType {
     START_BUTTONS {
         override fun getButtons() = InlineKeyboardMarkup.createSingleRowKeyboard(
-            InlineKeyboardButton.CallbackData("Регистрация", "register")
+            InlineKeyboardButton.CallbackData("Привязать аккаунт", "register")
         )
     },
     FUNCTIONAL_BUTTONS {
         override fun getButtons() = InlineKeyboardMarkup.createSingleRowKeyboard(
-            InlineKeyboardButton.CallbackData("Создать сессию", "create"),
-            InlineKeyboardButton.CallbackData("Список моих сессий", "sessions"),
-        )
-    },
-    LOBBY_BUTTONS {
-        override fun getButtons() = InlineKeyboardMarkup.createSingleRowKeyboard(
-            InlineKeyboardButton.CallbackData("Добавить/изменить описание подарка", "change")
+            InlineKeyboardButton.CallbackData("Информация об аккаунте", "userInfo"),
+            InlineKeyboardButton.CallbackData("Список моих сессий", "sessions")
         )
     };
 

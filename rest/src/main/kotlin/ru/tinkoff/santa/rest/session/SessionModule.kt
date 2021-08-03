@@ -21,18 +21,6 @@ fun Application.sessionModule() {
 
     routing {
         route("/session") {
-            route("/start/{id}") {
-                get {
-                    sessionController.start(call.parameters["id"]!!.toInt())
-                }
-            }
-
-            route("/finish/{id}") {
-                get {
-                    sessionController.finish(call.parameters["id"]!!.toInt())
-                }
-            }
-
             route("/notifications") {
                 get {
                     call.respond(HttpStatusCode.OK, sessionController.updateSessionsStatesAndGetChangeNotifications())
@@ -41,7 +29,6 @@ fun Application.sessionModule() {
 
             route("/create") {
                 post {
-                    // с датами переделать и исключения в контроллере
                     runCatching {
                         call.receive<CreateSessionRequest>()
                     }.onSuccess {
@@ -62,7 +49,6 @@ fun Application.sessionModule() {
             }
 
             route("/join") {
-                // проверку UUID вынести
                 post {
                     runCatching {
                         call.receive<JoinRequest>()

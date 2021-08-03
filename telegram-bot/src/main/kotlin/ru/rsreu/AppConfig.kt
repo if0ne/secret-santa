@@ -18,6 +18,7 @@ data class TelegramConfig(
 data class ServerConfig(
     val url: String,
     val guidCreateRoute: String,
-    val getSessionRoute: String,
-    val createSessionRoute: String
-)
+    val getSessionsRoute: String,
+    val getUserInfoRoute: String,
+    val getUserInfoAboutSessionRoute: String
+    )
