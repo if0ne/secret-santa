@@ -13,6 +13,7 @@ import react.*
 import react.router.dom.routeLink
 import removeMemberFromGame
 import shared_models.model.Session
+import shared_models.model.SessionState
 import shared_models.model.User
 import shared_models.request.JoinRequest
 import shared_models.request.LeaveRequest
@@ -43,7 +44,7 @@ class GameList(props: GameListProps) : RComponent<GameListProps,GameListState>(p
         }
     }
 
-    private fun RBuilder.gameLi(session: Session, userCount: Int): ReactElement {
+    private fun RBuilder.activeGameLi(session: Session,userCount: Int): ReactElement {
         return styledDiv {
             css {
                 classes = mutableListOf("card", "w-75", "mx-auto")
@@ -130,6 +131,50 @@ class GameList(props: GameListProps) : RComponent<GameListProps,GameListState>(p
         }
     }
 
+    private fun RBuilder.inactiveGameLi(session: Session,userCount: Int): ReactElement {
+        return styledDiv {
+            css {
+                classes = mutableListOf("card", "w-75", "mx-auto")
+                backgroundColor = Color("#B8BFA8")
+                marginTop = (0.5).rem
+            }
+            styledDiv {
+                css {
+                    classes = mutableListOf("card-body")
+                }
+                styledP {
+                    css {
+                        fontWeight = FontWeight.bold
+                        fontSize = (1.25).rem
+                    }
+                    +"Игра ${session.id}"
+                }
+                styledP {
+                    css {
+                        margin = "0"
+                    }
+
+                    +"Количество участников: $userCount"
+                }
+                styledP {
+                    css {
+                        margin = "0"
+                    }
+                    +"Дата мероприятия: ${session.eventTimestamp}"
+                }
+                styledP {
+                    +"Средняя цена подарка: "
+                    styledSpan {
+                        css {
+                            fontWeight = FontWeight.bold
+                        }
+                        +"${session.budget}₽"
+                    }
+                }
+            }
+        }
+    }
+
     override fun RBuilder.render() {
         styledDiv {
             css {
@@ -192,8 +237,28 @@ class GameList(props: GameListProps) : RComponent<GameListProps,GameListState>(p
             }
         }
 
-        state.gameList.forEach {
-            gameLi(it.first, it.second)
+        state.gameList.filter {
+            it.first.currentState == SessionState.LOBBY || it.first.currentState == SessionState.GAME
+        }.forEach {
+            activeGameLi(it.first, it.second)
+        }
+
+        val inActiveGame = state.gameList.filter { it.first.currentState == SessionState.FINISH }
+
+        if (inActiveGame.isNotEmpty()) {
+            styledP {
+                css {
+                    fontWeight = FontWeight.bold
+                    fontSize = 1.rem
+                    textAlign = TextAlign.center
+                    margin = ""
+                }
+                +"Ваши прошлые игры:"
+            }
+
+            inActiveGame.forEach {
+                inactiveGameLi(it.first, it.second)
+            }
         }
     }
 }

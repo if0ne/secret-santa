@@ -37,7 +37,7 @@ enum class WrongConfig(val message: String) {
 //ПРОСТО ЛУЧШЕ НЕ ТРОГАТЬ
 //ЖЕЛАТЕЛЬНО ПЕРЕПИСАТЬ
 fun Date.toOurFormat(): String =
-    "${this.getFullYear()}-${this.getMonth()}-${this.getDate()} ${if (this.getHours() < 10) "0"+this.getHours().toString() else this.getHours()}:${if (this.getMinutes() < 10) "0"+this.getMinutes() else this.getMinutes()}"
+    "${this.getFullYear()}-${if (this.getMonth() + 1 < 10) "0"+(this.getMonth() + 1 ) else (this.getMonth() + 1)}-${if (this.getDate() < 10) "0"+this.getDate() else this.getDate()} ${if (this.getHours() < 10) "0"+this.getHours().toString() else this.getHours()}:${if (this.getMinutes() < 10) "0"+this.getMinutes() else this.getMinutes()}"
 
 data class GameCreationState(
     var giftValue: String,
