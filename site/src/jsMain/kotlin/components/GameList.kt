@@ -11,9 +11,11 @@ import kotlinx.coroutines.launch
 import kotlinx.css.*
 import react.*
 import react.router.dom.routeLink
+import removeMemberFromGame
 import shared_models.model.Session
 import shared_models.model.User
 import shared_models.request.JoinRequest
+import shared_models.request.LeaveRequest
 import styled.css
 import styled.styledDiv
 import styled.styledP
@@ -92,6 +94,35 @@ class GameList(props: GameListProps) : RComponent<GameListProps,GameListState>(p
                             color = ButtonColor.ORANGE
                             disabled = false
                             buttonType = ButtonType.DEFAULT
+                        }
+                    }
+                    styledSpan {
+                        css {
+                            marginLeft = 15.px
+                        }
+                        santaButton {
+                            text = "Выйти"
+
+                            color = ButtonColor.RED
+                            disabled = false
+                            buttonType = ButtonType.DEFAULT
+
+                            onClick = {
+                                mainScope.launch {
+                                    removeMemberFromGame(
+                                        LeaveRequest(
+                                            props.user.id,
+                                            session.id
+                                        )
+                                    )
+                                    //ИСПРАВИТЬ ПРОСТЫМ УДАЛЕНИЕМ ИЗ СПИСКА
+                                    val userSessions = getUserSessions(props.user) as MutableList<Session>
+                                    val sessions = userSessions.map {
+                                        Pair(it,getMemberCount(it))
+                                    }
+                                    setState(GameListState("",sessions as MutableList<Pair<Session,Int>>))
+                                }
+                            }
                         }
                     }
                 }

@@ -287,24 +287,26 @@ class GameCreation : RComponent<GameCreationProps, GameCreationState>() {
                             if (state.presentDate!!.getTime() > Date.now()) {
                                 if (state.startDate!! >= state.presentDate!!) {
                                     mainScope.launch {
-                                        createSession(CreateSessionRequest(
-                                            "",
-                                            props.user.id,
-                                            props.user.telegramId,
-                                            state.giftValue.toInt(),
-                                            state.startDate!!.toOurFormat(),
-                                            state.presentDate!!.toOurFormat(),
-                                            3
-                                        ))
-                                        setState(
-                                            GameCreationState(
-                                                state.giftValue,
-                                                state.presentDate,
-                                                state.startDate,
-                                                state.wrongConfig,
-                                                true
+                                        try {
+                                            createSession(CreateSessionRequest(
+                                                "",
+                                                props.user.id,
+                                                props.user.telegramId,
+                                                state.giftValue.toInt(),
+                                                state.startDate!!.toOurFormat(),
+                                                state.presentDate!!.toOurFormat(),
+                                                3
+                                            ))
+                                            setState(
+                                                GameCreationState(
+                                                    state.giftValue,
+                                                    state.presentDate,
+                                                    state.startDate,
+                                                    state.wrongConfig,
+                                                    true
+                                                )
                                             )
-                                        )
+                                        } catch (ex: Exception) {}
                                     }
                                 } else {
                                     setState(

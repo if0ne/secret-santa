@@ -13,9 +13,12 @@ import org.w3c.dom.events.Event
 import react.*
 import react.dom.attrs
 import react.router.dom.routeLink
+import shared_models.model.SessionState
 import shared_models.model.User
 import shared_models.request.ConnectGuidRequest
+import shared_models.request.LeaveRequest
 import shared_models.request.SetAvatarUrlRequest
+import shared_models.response.UserInfoAboutSessionResponse
 import styled.css
 import styled.styledDiv
 import styled.styledImg
@@ -26,22 +29,21 @@ fun RBuilder.buildImage(href: String): ReactElement {
     return styledDiv {
         css {
             classes = mutableListOf("col-4")
-            height = 200.px
-            width = 200.px
-            display = Display.inlineBlock
-            position = Position.relative
-            overflow = Overflow.hidden
-            borderRadius = LinearDimension("50%")
         }
-        styledImg {
+        styledDiv {
             css {
-                height = LinearDimension("100%")
-                width = LinearDimension.auto
-                marginLeft = LinearDimension("-50px")
+                classes = mutableListOf("card")
+                border = "none"
             }
+            styledImg {
+                css {
+                    classes = mutableListOf("card-img-top")
+                    borderRadius = LinearDimension("50%")
+                }
 
-            attrs {
-                src = href
+                attrs {
+                    src = href
+                }
             }
         }
     }
@@ -58,6 +60,7 @@ data class ProfileState(
     var newUser: User,
     var isEditTelegram: Boolean,
     var telegramCode: String,
+    var isRightConnect: Boolean,
     var isEditProfile: Boolean,
     var avatarHref: String,
 ): RState
@@ -66,7 +69,7 @@ class Profile(props: ProfileProps): RComponent<ProfileProps, ProfileState>(props
 
     init {
         state.newUser = props.user
-        setState(ProfileState(props.user, false, "", false, ""))
+        setState(ProfileState(props.user, false, "", true, false, ""))
     }
 
     override fun RBuilder.render() {
@@ -122,7 +125,7 @@ class Profile(props: ProfileProps): RComponent<ProfileProps, ProfileState>(props
                             buttonType = ButtonType.WIDTH_WITH_MARGIN
 
                             onClick = {
-                                setState(ProfileState(state.newUser, state.isEditTelegram, state.telegramCode, !state.isEditProfile, ""))
+                                setState(ProfileState(state.newUser, state.isEditTelegram, state.telegramCode, true, !state.isEditProfile, ""))
                             }
                         }
 
@@ -133,7 +136,7 @@ class Profile(props: ProfileProps): RComponent<ProfileProps, ProfileState>(props
                             buttonType = ButtonType.WIDTH_WITH_MARGIN
 
                             onClick = {
-                                setState(ProfileState(state.newUser, !state.isEditTelegram, "", state.isEditProfile, state.avatarHref))
+                                setState(ProfileState(state.newUser, !state.isEditTelegram, "", true, state.isEditProfile, state.avatarHref))
                             }
                         }
                     }
@@ -190,7 +193,7 @@ class Profile(props: ProfileProps): RComponent<ProfileProps, ProfileState>(props
                         validation = null
 
                         onChange = { value, _ ->
-                            setState(ProfileState(state.newUser, state.isEditTelegram, value, state.isEditProfile, state.avatarHref))
+                            setState(ProfileState(state.newUser, state.isEditTelegram, value, state.isRightConnect, state.isEditProfile, state.avatarHref))
                         }
                     }
                     santaButton {
@@ -201,17 +204,33 @@ class Profile(props: ProfileProps): RComponent<ProfileProps, ProfileState>(props
 
                         onClick = {
                             mainScope.launch {
-                                val response = telegramConnect(ConnectGuidRequest(
-                                    props.user.id,
-                                    state.telegramCode
-                                ))
+                                var response = false
+                                try {
+                                    response = telegramConnect(ConnectGuidRequest(
+                                        props.user.id,
+                                        state.telegramCode
+                                    ))
+                                } catch (ex: Exception) {}
 
                                 if (response) {
                                     val newUser = getUserById(props.user.id)
-                                    setState(ProfileState(newUser!!, false, "", false, ""))
+                                    setState(ProfileState(newUser!!, false, "", true,false, ""))
                                     props.changeProfileCallback(newUser)
+                                } else {
+                                    setState(ProfileState(state.newUser, state.isEditTelegram, state.telegramCode, false,state.isEditProfile, state.avatarHref))
                                 }
                             }
+                        }
+                    }
+
+                    if (!state.isRightConnect) {
+                        styledP {
+                            css {
+                                classes = mutableListOf("form-text")
+                                color = Color("#8C1F1F")
+                                margin = "0"
+                            }
+                            +"Неверный код"
                         }
                     }
                 }
@@ -244,7 +263,7 @@ class Profile(props: ProfileProps): RComponent<ProfileProps, ProfileState>(props
                         validation = null
 
                         onChange = { value, _ ->
-                            setState(ProfileState(state.newUser, state.isEditTelegram, state.telegramCode, state.isEditProfile, value))
+                            setState(ProfileState(state.newUser, state.isEditTelegram, state.telegramCode, true, state.isEditProfile, value))
                         }
                     }
                     santaButton {
@@ -255,14 +274,17 @@ class Profile(props: ProfileProps): RComponent<ProfileProps, ProfileState>(props
 
                         onClick = {
                             mainScope.launch {
-                                val response = connectAvatar(SetAvatarUrlRequest(
-                                    props.user.id,
-                                    state.avatarHref
-                                ))
+                                var response = false
+                                try {
+                                    response = connectAvatar(SetAvatarUrlRequest(
+                                        props.user.id,
+                                        state.avatarHref
+                                    ))
+                                } catch (ex: Exception) {}
 
                                 if (response) {
                                     val newUser = getUserById(props.user.id)
-                                    setState(ProfileState(newUser!!, false, "", false, ""))
+                                    setState(ProfileState(newUser!!, false, "", true,false, ""))
                                     props.changeProfileCallback(newUser)
                                 }
 
