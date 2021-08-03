@@ -14,7 +14,7 @@ class SessionService(private val sessionDao: SessionDao) {
 
     fun getByHostId(hostId: Int): List<Session> = sessionDao.getByHostId(hostId)
 
-    fun getByGuid(guid: UUID): Session? = sessionDao.getByGuid(guid)
+    private fun getByGuid(guid: UUID): Session? = sessionDao.getByGuid(guid)
 
     fun create(
         currentState: SessionState,
@@ -54,6 +54,8 @@ class SessionService(private val sessionDao: SessionDao) {
         dateTimeToChoose
     )
 
+    fun isUserHost(userId: Int, sessionId: Int): Boolean = checkAndGetSession(sessionId).hostId == userId
+
     fun startSession(sessionId: Int) = setCurrentState(sessionId, SessionState.GAME)
 
     fun finishSession(sessionId: Int) = setCurrentState(sessionId, SessionState.FINISH)
@@ -66,6 +68,22 @@ class SessionService(private val sessionDao: SessionDao) {
                 state,
                 session.description,
                 session.hostId,
+                session.budget,
+                session.minPlayersQuantity,
+                session.eventTimestamp,
+                session.timestampToChoose
+            )
+        }
+    }
+
+    fun setHostId(sessionId: Int, hostId: Int){
+        val session = getById(sessionId)
+        if (session != null) {
+            update(
+                session.id,
+                session.currentState,
+                session.description,
+                hostId,
                 session.budget,
                 session.minPlayersQuantity,
                 session.eventTimestamp,

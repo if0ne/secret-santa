@@ -78,10 +78,8 @@ class SessionDao(private val database: Database) {
         }
     }
 
-    fun delete(id: Int) {
-        Sessions.deleteWhere {
-            Sessions.id eq id
-        }
+    fun delete(id: Int) = transaction(database) {
+        Sessions.deleteWhere { Sessions.id eq id }
     }
 }
 

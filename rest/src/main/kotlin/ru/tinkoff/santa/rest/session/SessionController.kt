@@ -94,12 +94,14 @@ class SessionController(
         sessionService.checkSession(sessionId)
         sessionService.checkCurrentStateIsGame(sessionId)
         sessionService.finishSession(sessionId)
-        // мб удалять данные из таблиц
     }
 
     private fun prematureFinish(sessionId: Int) {
-        sessionService.checkSession(sessionId)
-        sessionService.finishSession(sessionId)
+        userSessionService.getBySessionId(sessionId).forEach {
+            userSessionGiftService.deleteByUserSession(it.id)
+            userSessionService.delete(it.id)
+        }
+        sessionService.delete(sessionId)
     }
 
     fun joinOnSession(userId: Int, sessionGuid: UUID): Session {
@@ -118,6 +120,19 @@ class SessionController(
         val userSession = userSessionService.checkAndGetUserSession(userId, sessionId)
         userSessionGiftService.deleteByUserSession(userSession.id)
         userSessionService.delete(userSession.id)
+        if (sessionService.isUserHost(userId, sessionId)) {
+            assignNewHost(sessionId)
+        }
+    }
+
+    private fun assignNewHost(sessionId: Int) {
+        val users = getUsersInSession(sessionId)
+        if (users.isEmpty()) {
+            sessionService.delete(sessionId)
+        } else {
+            val newHost = users.random()
+            sessionService.setHostId(sessionId, newHost.id)
+        }
     }
 
     fun getUserInfoAboutSession(userId: Int, sessionId: Int): UserInfoAboutSessionResponse {
@@ -182,7 +197,7 @@ class SessionController(
     private fun updateSessionsStates(): List<Session> {
         return sessionService.getAll().filter {
             checkAndUpdateSessionState(it.id)
-        }.map { sessionService.getById(it.id)!! }
+        }.mapNotNull { sessionService.getById(it.id) }
     }
 
     private fun checkAndUpdateSessionState(sessionId: Int): Boolean {
