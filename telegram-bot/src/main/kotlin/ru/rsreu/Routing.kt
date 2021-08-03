@@ -15,12 +15,14 @@ fun Application.configureRouting(bot: SantaBot) {
             bot.processUpdate(receiveBody)
             call.respond(HttpStatusCode.OK)
         }
-        post("/notifications"){
+        post("/notifications") {
             val request = call.receive<List<ChangeNotification>>()
             request.forEach {
-                when(it.session.currentState){
-                    SessionState.GAME -> bot.remindToStartSession(it.session, it.users)
-                    SessionState.FINISH -> bot.remindToEndSession(it.session, it.users)
+                when (it.session.currentState) {
+                    SessionState.GAME -> bot.notifyAboutStartSession(it.session, it.users)
+                    SessionState.FINISH -> bot.notifyAboutEndSession(it.session, it.users)
+                    else -> {
+                    }
                 }
             }
             call.respond(HttpStatusCode.OK)

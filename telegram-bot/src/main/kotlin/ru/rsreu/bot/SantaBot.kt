@@ -17,12 +17,10 @@ import ru.tinkoff.sanata.shared_models.model.SessionState
 import ru.tinkoff.sanata.shared_models.model.User
 import ru.tinkoff.sanata.shared_models.request.CreateGuidRequest
 import ru.tinkoff.sanata.shared_models.request.UserSessionInfoRequest
-import ru.tinkoff.sanata.shared_models.response.UserInfoAboutSessionResponse
 import ru.tinkoff.sanata.shared_models.status.GuidErrorCode
 
 class SantaBot(config: AppConfig, client: HttpClient) {
-
-    private val buttons = TgButtons()
+    private val telegramBotController = TelegramBotController()
 
     private val telegramBot = bot {
         token = config.telegram.token
@@ -31,11 +29,7 @@ class SantaBot(config: AppConfig, client: HttpClient) {
         }
         dispatch {
             command("start") {
-                bot.sendMsg(
-                    chatId = message.chat.id,
-                    text = "Добро пожаловать в Тайного Санту",
-                    buttons = buttons.getButtons(ButtonsType.START_BUTTONS)
-                )
+                telegramBotController.sendWelcomeMessage(bot, message.chat.id)
             }
 
             callbackQuery("register") {
@@ -48,34 +42,17 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                     }
                     when (response.status) {
                         HttpStatusCode.Created -> {
-                            bot.deleteLastMessage(callbackQuery)
-                            bot.sendSomeMsg(
-                                id,
-                                "Ваш GUID:",
-                                response.receive(),
-                                "Укажите его в своем личном кабинете, чтобы привязать аккаунт ... ."
-                            )
-                            bot.sendMsg(
-                                id,
-                                "Возможности бота:",
-                                buttons.getButtons(ButtonsType.FUNCTIONAL_BUTTONS)
-                            )
+                            telegramBotController.sendGuid(bot, callbackQuery, response.receive())
                         }
                         HttpStatusCode.InternalServerError -> {
                             when (response.receive<GuidErrorCode>()) {
                                 GuidErrorCode.ACCOUNT_ALREADY_LINKED -> {
-                                    bot.sendMsg(
-                                        id,
-                                        "Ваш аккаунт уже привязан. Возможности бота: ",
-                                        buttons.getButtons(ButtonsType.FUNCTIONAL_BUTTONS)
-                                    )
+                                    telegramBotController.sendMessageAboutLinkedAccount(bot, id)
                                 }
                                 GuidErrorCode.GUID_ALREADY_ISSUED -> {
-                                    bot.sendMsg(
-                                        id,
-                                        "Вам уже был сгенерирован GUID"
-                                    )
+                                    telegramBotController.sendMessageAboutAlreadyIssued(bot, id)
                                 }
+                                else -> {}
                             }
                         }
                     }
@@ -83,11 +60,7 @@ class SantaBot(config: AppConfig, client: HttpClient) {
             }
 
             command("features") {
-                bot.sendMsg(
-                    message.chat.id,
-                    "Возможности бота",
-                    buttons.getButtons(ButtonsType.FUNCTIONAL_BUTTONS)
-                )
+                telegramBotController.sendFeatures(bot, message.chat.id)
             }
 
             callbackQuery("userInfo") {
@@ -100,14 +73,10 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                         }
                     when (response.status) {
                         HttpStatusCode.OK -> {
-                            bot.sendUserInfo(id, response.receive<User>())
+                            telegramBotController.sendUserInfo(bot, id, response.receive())
                         }
                         HttpStatusCode.NotFound -> {
-                            bot.sendMsg(
-                                chatId = id,
-                                text = "Вы не найдены в базе",
-                                buttons = buttons.getButtons(ButtonsType.START_BUTTONS)
-                            )
+                            telegramBotController.sendMessageAboutNotLinkedAccount(bot, id)
                         }
                     }
                 }
@@ -132,34 +101,16 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                                     }
                                 when (response.status) {
                                     HttpStatusCode.OK -> {
-                                        val sessions = response.receive<List<Session>>()
+                                        val activeSessions = response.receive<List<Session>>()
                                             .filter { it.currentState != SessionState.FINISH }
-                                        sessions.forEach {
-                                            val description =
-                                                if (it.description != null) "\nОписание ${it.description}" else ""
-                                            bot.sendMsg(
-                                                id,
-                                                "Сессия ${it.id}$description\nБюджет ${it.budget}\n" +
-                                                        "Дата окончания выбора подарков\n${getDateString(it.timestampToChoose)}\n" +
-                                                        "Дата мероприятия\n${getDateString(it.eventTimestamp)}\n",
-                                                buttons.getUserInfoAboutSessionButton(user.id, it.id)
-                                            )
-                                        }
+                                        telegramBotController.sendSessions(bot, user, activeSessions)
                                     }
-                                    else -> bot.sendMsg(
-                                        id,
-                                        "Что-то пошло не так"
-                                    )
+                                    else -> {}
                                 }
                             }
                         }
-                        HttpStatusCode.NotFound -> {
-                            bot.sendMsg(
-                                id,
-                                "Вы не найдены в базе",
-                                buttons.getButtons(ButtonsType.START_BUTTONS)
-                            )
-                        }
+                        HttpStatusCode.NotFound -> telegramBotController.sendMessageAboutNotLinkedAccount(bot, id)
+
                     }
                 }
             }
@@ -167,6 +118,7 @@ class SantaBot(config: AppConfig, client: HttpClient) {
             callbackQuery("userSessionInfo") {
                 val userId = callbackQuery.data.split(" ")[1].toInt()
                 val sessionId = callbackQuery.data.split(" ")[2].toInt()
+                bot.deleteLastMessage(callbackQuery)
                 runBlocking {
                     val response =
                         client.post<HttpResponse>(config.server.url + config.server.getUserInfoAboutSessionRoute) {
@@ -174,10 +126,8 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                             contentType(ContentType.Application.Json)
                             body = UserSessionInfoRequest(userId, sessionId)
                         }
-                    when(response.status){
-                        HttpStatusCode.OK -> {
-                            bot.sendUserSessionInfo(response.receive())
-                        }
+                    when (response.status) {
+                        HttpStatusCode.OK -> telegramBotController.sendUserSessionInfo(bot, response.receive())
                     }
                 }
             }
@@ -188,28 +138,15 @@ class SantaBot(config: AppConfig, client: HttpClient) {
 
     fun processUpdate(receiveBody: String) = telegramBot.processUpdate(receiveBody)
 
-    fun remindToEndSession(session: Session, users: List<User>) {
+    fun notifyAboutEndSession(session: Session, users: List<User>) {
         users.filter { it.telegramId != null }.forEach {
-            telegramBot.sendMsg(
-                it.telegramId!!,
-                "${it.firstName}, сессия ${session.id} закончилась"
-            )
+            telegramBotController.notifyAboutEndSession(telegramBot, it, session)
         }
     }
 
-    fun remindToChooseGift(userId: Long) {
-        telegramBot.sendMsg(
-            userId,
-            "Вы еще не выбрали подарок в сессии ... . Поторопитесь!"
-        )
-    }
-
-    fun remindToStartSession(session: Session, users: List<User>) {
+    fun notifyAboutStartSession(session: Session, users: List<User>) {
         users.filter { it.telegramId != null }.forEach {
-            telegramBot.sendMsg(
-                it.telegramId!!,
-                "${it.firstName}, сессия ${session.id} началась"
-            )
+            telegramBotController.notifyAboutStartSession(telegramBot, it, session)
         }
     }
 }

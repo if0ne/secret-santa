@@ -140,13 +140,13 @@ class SessionController(
         val session = sessionService.checkAndGetSession(sessionId)
         val userSession = userSessionService.checkAndGetUserSession(userId, sessionId)
         val users = getUsersInSession(sessionId)
-        val gifts = getGiftsByUserIdAndSessionId(userSession.id)
+        val gifts = getGiftsByUserSessionId(userSession.id)
         val giftReceivingUser = getGiftReceivingUser(userId, sessionId)
         val receivingUserGifts: List<Gift> = if (giftReceivingUser == null) {
             listOf()
         } else {
             val giftReceivingUserSession = userSessionService.checkAndGetUserSession(giftReceivingUser.id, sessionId)
-            getGiftsByUserIdAndSessionId(giftReceivingUserSession.id)
+            getGiftsByUserSessionId(giftReceivingUserSession.id)
         }
         return UserInfoAboutSessionResponse(
             user,
@@ -157,7 +157,7 @@ class SessionController(
         )
     }
 
-    private fun getGiftsByUserIdAndSessionId(userSessionId: Int): List<Gift> =
+    private fun getGiftsByUserSessionId(userSessionId: Int): List<Gift> =
         userSessionGiftService.getByUserSessionId(userSessionId).map {
             giftService.getById(it.giftId)!!
         }
