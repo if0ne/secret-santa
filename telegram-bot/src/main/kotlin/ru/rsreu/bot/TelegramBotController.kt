@@ -91,6 +91,12 @@ class TelegramBotController {
 
     fun sendSessions(bot: Bot, user: User, sessions: List<Session>) {
         val id = user.telegramId!!
+        if (sessions.isEmpty()) {
+            bot.sendMsg(
+                id,
+                "У вас нет активных сессий"
+            )
+        }
         sessions.forEach {
             bot.sendMsg(
                 id,
@@ -173,5 +179,4 @@ class TelegramBotController {
         }
         return output.toString()
     }
-
 }

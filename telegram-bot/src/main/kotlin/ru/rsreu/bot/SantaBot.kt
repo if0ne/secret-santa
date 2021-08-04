@@ -52,7 +52,8 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                                 GuidErrorCode.GUID_ALREADY_ISSUED -> {
                                     telegramBotController.sendMessageAboutAlreadyIssued(bot, id)
                                 }
-                                else -> {}
+                                else -> {
+                                }
                             }
                         }
                     }
@@ -105,12 +106,12 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                                             .filter { it.currentState != SessionState.FINISH }
                                         telegramBotController.sendSessions(bot, user, activeSessions)
                                     }
-                                    else -> {}
+                                    else -> {
+                                    }
                                 }
                             }
                         }
                         HttpStatusCode.NotFound -> telegramBotController.sendMessageAboutNotLinkedAccount(bot, id)
-
                     }
                 }
             }
