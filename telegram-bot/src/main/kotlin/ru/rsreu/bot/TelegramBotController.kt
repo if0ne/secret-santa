@@ -5,12 +5,230 @@ import com.github.kotlintelegrambot.entities.CallbackQuery
 import ru.tinkoff.sanata.shared_models.model.Gift
 import ru.tinkoff.sanata.shared_models.model.Session
 import ru.tinkoff.sanata.shared_models.model.User
+import ru.tinkoff.sanata.shared_models.request.CreateSessionRequest
 import ru.tinkoff.sanata.shared_models.response.UserInfoAboutSessionResponse
 import java.time.LocalDateTime
 import java.time.Month
+import java.time.format.DateTimeFormatter
 
 class TelegramBotController {
     private val buttons = TgButtons()
+    private val sessionCreatingList = mutableListOf<SessionCreating>()
+
+    fun startCreatingSession(bot: Bot, id: Long) {
+        if (sessionCreatingList.find { it.telegramId == id } == null) {
+            sessionCreatingList.add(SessionCreating(id, SessionCreatingState.ENTER_DESCRIPTION))
+        }
+        bot.sendMsg(
+            id,
+            "Вы начала процесс создания сессии, чтобы закончить напишите \"отмена\". Введите описание сессии"
+        )
+    }
+
+    fun enterText(bot: Bot, id: Long, text: String) {
+        val sessionCreating = sessionCreatingList.find { it.telegramId == id }
+        if (sessionCreating != null) {
+            if (text == "отмена") {
+                sessionCreatingList.remove(sessionCreating)
+                bot.sendMsg(
+                    id,
+                    "Процесс создания сессии отменен"
+                )
+            } else {
+                creatingProcess(bot, id, text)
+            }
+        }
+    }
+
+    private fun creatingProcess(bot: Bot, id: Long, text: String) {
+        val sessionCreating = sessionCreatingList.find { it.telegramId == id }!!
+        // полиморфизм
+        when (sessionCreating.state) {
+            SessionCreatingState.ENTER_DESCRIPTION -> {
+                successEnterDescription(bot, sessionCreating, text)
+            }
+            SessionCreatingState.ENTER_BUDGET -> {
+                enterBudget(bot, sessionCreating, text)
+            }
+            SessionCreatingState.ENTER_MIN_PLAYERS -> {
+                enterMinPlayers(bot, sessionCreating, text)
+            }
+            SessionCreatingState.ENTER_EVENT_TIMESTAMP -> {
+                enterEventTimestamp(bot, sessionCreating, text)
+            }
+            SessionCreatingState.ENTER_TIMESTAMP_TO_CHOOSE -> {
+                enterTimestampToChoose(bot, sessionCreating, text)
+            }
+        }
+    }
+
+    private fun enterTimestampToChoose(bot: Bot, sessionCreating: SessionCreating, timestampToChooseString: String) {
+        if (checkTimestampToChoose(timestampToChooseString)) {
+            successEnterTimestampToChoose(bot, sessionCreating, timestampToChooseString)
+        } else {
+            failEnterTimestampToChoose(bot, sessionCreating)
+        }
+    }
+
+    private fun checkTimestampToChoose(timestampToChooseString: String): Boolean {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+        return try {
+            LocalDateTime.parse(timestampToChooseString, formatter)
+            true
+        } catch (exception: Exception) {
+            false
+        }
+    }
+
+    private fun successEnterTimestampToChoose(
+        bot: Bot,
+        sessionCreating: SessionCreating,
+        timestampToChooseString: String
+    ) {
+        sessionCreating.timestampToChoose = timestampToChooseString
+        bot.sendMsg(
+            sessionCreating.telegramId,
+            sessionCreating.toString(),
+            buttons.getButtons(ButtonsType.SESSION_CREATING_BUTTONS)
+        )
+    }
+
+    private fun failEnterTimestampToChoose(bot: Bot, sessionCreating: SessionCreating) {
+        bot.sendMsg(
+            sessionCreating.telegramId,
+            "Дата должна соответствовать формату yyyy-MM-dd HH:mm"
+        )
+    }
+
+    private fun successEnterDescription(bot: Bot, sessionCreating: SessionCreating, text: String) {
+        sessionCreating.description = text
+        sessionCreating.state = SessionCreatingState.ENTER_BUDGET
+        bot.sendMsg(
+            sessionCreating.telegramId,
+            "Введите бюджет"
+        )
+    }
+
+    private fun enterEventTimestamp(bot: Bot, sessionCreating: SessionCreating, eventTimestampString: String) {
+        if (checkEventTimestamp(eventTimestampString)) {
+            successEnterEventTimestamp(bot, sessionCreating, eventTimestampString)
+        } else {
+            failEnterEventTimestamp(bot, sessionCreating)
+        }
+    }
+
+    private fun checkEventTimestamp(eventTimestampString: String): Boolean {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+        return try {
+            LocalDateTime.parse(eventTimestampString, formatter)
+            true
+        } catch (exception: Exception) {
+            false
+        }
+    }
+
+    private fun successEnterEventTimestamp(bot: Bot, sessionCreating: SessionCreating, eventTimestampString: String) {
+        sessionCreating.eventTimestamp = eventTimestampString
+        sessionCreating.state = SessionCreatingState.ENTER_TIMESTAMP_TO_CHOOSE
+        bot.sendMsg(
+            sessionCreating.telegramId,
+            "Введите дату окончания выбора подарков"
+        )
+    }
+
+    private fun failEnterEventTimestamp(bot: Bot, sessionCreating: SessionCreating) {
+        bot.sendMsg(
+            sessionCreating.telegramId,
+            "Дата должна соответствовать формату yyyy-MM-dd HH:mm"
+        )
+    }
+
+    private fun enterBudget(bot: Bot, sessionCreating: SessionCreating, budgetString: String) {
+        if (checkBudget(budgetString)) {
+            successEnterBudget(bot, sessionCreating, budgetString.toInt())
+        } else {
+            failEnterBudget(bot, sessionCreating)
+        }
+    }
+
+    private fun checkBudget(budgetString: String): Boolean {
+        val budget = budgetString.toIntOrNull() ?: return false
+        if ((budget < 100) or (budget > 10000)) {
+            return false
+        }
+        return true
+    }
+
+    private fun successEnterBudget(bot: Bot, sessionCreating: SessionCreating, budget: Int) {
+        sessionCreating.budget = budget
+        sessionCreating.state = SessionCreatingState.ENTER_MIN_PLAYERS
+        bot.sendMsg(
+            sessionCreating.telegramId,
+            "Введите минимальное количество игроков"
+        )
+    }
+
+    private fun failEnterBudget(bot: Bot, sessionCreating: SessionCreating) {
+        bot.sendMsg(
+            sessionCreating.telegramId,
+            "Бюджет должен быть натуральным числом в диапазоне [100,10000]"
+        )
+    }
+
+
+    fun getCreateSessionRequest(id: Long): CreateSessionRequest {
+        val sessionCreating = sessionCreatingList.find { it.telegramId == id }!!
+        return CreateSessionRequest(
+            sessionCreating.description,
+            null,
+            id,
+            sessionCreating.budget!!,
+            sessionCreating.eventTimestamp!!,
+            sessionCreating.timestampToChoose!!,
+            sessionCreating.minPlayersQuantity
+        )
+    }
+
+    private fun enterMinPlayers(bot: Bot, sessionCreating: SessionCreating, minPlayersString: String) {
+        if (checkMinPlayers(minPlayersString)) {
+            successEnterMinPlayers(bot, sessionCreating, minPlayersString.toInt())
+        } else {
+            failEnterMinPlayers(bot, sessionCreating)
+        }
+    }
+
+    private fun checkMinPlayers(minPlayersString: String): Boolean {
+        val minPlayers = minPlayersString.toIntOrNull() ?: return false
+        if ((minPlayers < 3) or (minPlayers > 10)) {
+            return false
+        }
+        return true
+    }
+
+    private fun successEnterMinPlayers(bot: Bot, sessionCreating: SessionCreating, minPlayers: Int) {
+        sessionCreating.minPlayersQuantity = minPlayers
+        sessionCreating.state = SessionCreatingState.ENTER_EVENT_TIMESTAMP
+        bot.sendMsg(
+            sessionCreating.telegramId,
+            "Введите дату мероприятия"
+        )
+    }
+
+    private fun failEnterMinPlayers(bot: Bot, sessionCreating: SessionCreating) {
+        bot.sendMsg(
+            sessionCreating.telegramId,
+            "Количество участников должно быть числом большем 2"
+        )
+    }
+
+    fun successCreateSession(bot: Bot, id: Long, callbackQuery: CallbackQuery) {
+        bot.deleteLastMessage(callbackQuery)
+        bot.sendMsg(
+            id,
+            "Сессия успешно создалась",
+            buttons.getButtons(ButtonsType.SUCCESS_SESSION_CREATING_BUTTONS)
+        )
+    }
 
     fun sendWelcomeMessage(bot: Bot, chatId: Long) {
         bot.sendMsg(

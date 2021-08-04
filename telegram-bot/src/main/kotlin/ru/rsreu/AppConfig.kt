@@ -20,5 +20,6 @@ data class ServerConfig(
     val guidCreateRoute: String,
     val getSessionsRoute: String,
     val getUserInfoRoute: String,
-    val getUserInfoAboutSessionRoute: String
+    val getUserInfoAboutSessionRoute: String,
+    val createSessionRoute: String
     )

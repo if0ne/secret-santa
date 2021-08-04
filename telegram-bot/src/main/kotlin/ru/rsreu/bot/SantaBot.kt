@@ -4,6 +4,7 @@ import com.github.kotlintelegrambot.bot
 import com.github.kotlintelegrambot.dispatch
 import com.github.kotlintelegrambot.dispatcher.callbackQuery
 import com.github.kotlintelegrambot.dispatcher.command
+import com.github.kotlintelegrambot.dispatcher.text
 import com.github.kotlintelegrambot.webhook
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -130,6 +131,36 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                     when (response.status) {
                         HttpStatusCode.OK -> telegramBotController.sendUserSessionInfo(bot, response.receive())
                     }
+                }
+            }
+
+            callbackQuery("create") {
+                telegramBotController.startCreatingSession(bot, callbackQuery.from.id)
+            }
+
+            callbackQuery("confirmCreating") {
+                val id = callbackQuery.from.id
+                val creatingSessionRequest = telegramBotController.getCreateSessionRequest(id)
+                runBlocking {
+                    val response = client.post<HttpResponse>(config.server.url + config.server.createSessionRoute) {
+                        method = HttpMethod.Post
+                        contentType(ContentType.Application.Json)
+                        body = creatingSessionRequest
+                    }
+                    when (response.status) {
+                        HttpStatusCode.Created -> {
+                            telegramBotController.successCreateSession(bot, id, callbackQuery)
+                        }
+                        else -> {
+                        }
+                    }
+                }
+            }
+
+            text {
+                val text = message.text!!
+                if (!text.startsWith("/")) {
+                    telegramBotController.enterText(bot, message.from!!.id, text)
                 }
             }
         }
