@@ -17,6 +17,7 @@ import ru.tinkoff.sanata.shared_models.model.Session
 import ru.tinkoff.sanata.shared_models.model.SessionState
 import ru.tinkoff.sanata.shared_models.model.User
 import ru.tinkoff.sanata.shared_models.request.CreateGuidRequest
+import ru.tinkoff.sanata.shared_models.request.LeaveRequest
 import ru.tinkoff.sanata.shared_models.request.UserSessionInfoRequest
 import ru.tinkoff.sanata.shared_models.status.GuidErrorCode
 
@@ -117,6 +118,23 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                 }
             }
 
+            callbackQuery("leave") {
+                val userId = callbackQuery.data.split(" ")[1].toInt()
+                val sessionId = callbackQuery.data.split(" ")[2].toInt()
+                bot.deleteLastMessage(callbackQuery)
+                runBlocking {
+                    val response =
+                        client.delete<HttpResponse>(config.server.url + config.server.leaveRoute) {
+                            method = HttpMethod.Delete
+                            contentType(ContentType.Application.Json)
+                            body = LeaveRequest(userId, sessionId)
+                        }
+                    when (response.status) {
+                        HttpStatusCode.OK -> telegramBotController.sendMessageAboutSuccessLeave(bot, callbackQuery.from.id, sessionId)
+                    }
+                }
+            }
+
             callbackQuery("userSessionInfo") {
                 val userId = callbackQuery.data.split(" ")[1].toInt()
                 val sessionId = callbackQuery.data.split(" ")[2].toInt()
@@ -132,6 +150,12 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                         HttpStatusCode.OK -> telegramBotController.sendUserSessionInfo(bot, response.receive())
                     }
                 }
+            }
+
+            callbackQuery("addGift"){
+                val userId = callbackQuery.data.split(" ")[1].toInt()
+                val sessionId = callbackQuery.data.split(" ")[2].toInt()
+                telegramBotController.startCreatingGift(bot, callbackQuery.from.id, userId, sessionId)
             }
 
             callbackQuery("create") {
@@ -155,6 +179,10 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                         }
                     }
                 }
+            }
+
+            callbackQuery("cancelCreating") {
+                telegramBotController.cancelSessionCreating(bot, callbackQuery)
             }
 
             text {

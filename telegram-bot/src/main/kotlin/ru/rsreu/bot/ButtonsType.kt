@@ -10,22 +10,26 @@ enum class ButtonsType {
         )
     },
     FUNCTIONAL_BUTTONS {
-        override fun getButtons() = InlineKeyboardMarkup.createSingleRowKeyboard(
-            InlineKeyboardButton.CallbackData("Информация об аккаунте", "userInfo"),
-            InlineKeyboardButton.CallbackData("Список моих сессий", "sessions"),
-            InlineKeyboardButton.CallbackData("Создать сессию", "create")
+        override fun getButtons() = InlineKeyboardMarkup.create(
+            listOf(
+                listOf(
+                    InlineKeyboardButton.CallbackData("Информация об аккаунте", "userInfo")
+                ),
+                listOf(InlineKeyboardButton.CallbackData("Список моих сессий", "sessions")),
+                listOf(InlineKeyboardButton.CallbackData("Создать сессию", "create"))
+            )
         )
     },
-    SUCCESS_SESSION_CREATING_BUTTONS{
+    SUCCESS_SESSION_CREATING_BUTTONS {
         override fun getButtons() = InlineKeyboardMarkup.createSingleRowKeyboard(
             InlineKeyboardButton.CallbackData("Список моих сессий", "sessions")
         )
     },
-    SESSION_CREATING_BUTTONS{
+    SESSION_CREATING_BUTTONS {
         override fun getButtons() = InlineKeyboardMarkup.createSingleRowKeyboard(
-        InlineKeyboardButton.CallbackData("Создать", "confirmCreating"),
-        InlineKeyboardButton.CallbackData("Изменить", "changeCreating"),
-        InlineKeyboardButton.CallbackData("Отмена", "cancelCreating")
+            InlineKeyboardButton.CallbackData("Создать", "confirmCreating"),
+            InlineKeyboardButton.CallbackData("Изменить", "changeCreating"),
+            InlineKeyboardButton.CallbackData("Отмена", "cancelCreating")
         )
     };
 

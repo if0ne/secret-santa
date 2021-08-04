@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter
 class TelegramBotController {
     private val buttons = TgButtons()
     private val sessionCreatingList = mutableListOf<SessionCreating>()
+    private val additionalGiftList = mutableListOf<AdditionalGift>()
 
     fun startCreatingSession(bot: Bot, id: Long) {
         if (sessionCreatingList.find { it.telegramId == id } == null) {
@@ -23,6 +24,10 @@ class TelegramBotController {
             id,
             "Вы начала процесс создания сессии, чтобы закончить напишите \"отмена\". Введите описание сессии"
         )
+    }
+
+    fun startCreatingGift(bot: Bot, id: Long, userId: Int, sessionId: Int) {
+
     }
 
     fun enterText(bot: Bot, id: Long, text: String) {
@@ -222,11 +227,24 @@ class TelegramBotController {
     }
 
     fun successCreateSession(bot: Bot, id: Long, callbackQuery: CallbackQuery) {
+        val sessionCreating = sessionCreatingList.find { it.telegramId == id }!!
+        sessionCreatingList.remove(sessionCreating)
         bot.deleteLastMessage(callbackQuery)
         bot.sendMsg(
             id,
             "Сессия успешно создалась",
             buttons.getButtons(ButtonsType.SUCCESS_SESSION_CREATING_BUTTONS)
+        )
+    }
+
+    fun cancelSessionCreating(bot: Bot, callbackQuery: CallbackQuery) {
+        val id = callbackQuery.from.id
+        bot.deleteLastMessage(callbackQuery)
+        val sessionCreating = sessionCreatingList.find { it.telegramId == id }!!
+        sessionCreatingList.remove(sessionCreating)
+        bot.sendMsg(
+            id,
+            "Создание сессии отменено"
         )
     }
 
@@ -326,14 +344,19 @@ class TelegramBotController {
 
     fun sendUserSessionInfo(bot: Bot, info: UserInfoAboutSessionResponse) {
         val session = info.session
+        val user = info.user
         val usersString = formUsersString(info.users)
         val giftsString = formUserGifts(info.userGifts, "Список выбранных подарков:\n", "Вы не выбрали ни 1 подарка\n")
         val giftGivingInfo = formGiftGivingInfo(info.giftReceivingUser, info.receivingUserGifts)
         bot.sendMsg(
             info.user.telegramId!!,
-            formMainSessionInfo(session) + usersString + giftsString + giftGivingInfo
+            formMainSessionInfo(session) + usersString + giftsString + giftGivingInfo,
+            buttons.getAdditionalGiftButton(user.id, session.id)
         )
     }
+
+    fun sendMessageAboutSuccessLeave(bot: Bot, id: Long, sessionId: Int) =
+        bot.sendMsg(id, "Вы успешно покинулу сессию $sessionId")
 
     private fun formMainSessionInfo(session: Session): String = "Сессия ${session.id}" +
             formDescription(session.description) +
