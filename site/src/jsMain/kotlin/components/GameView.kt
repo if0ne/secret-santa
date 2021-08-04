@@ -80,7 +80,7 @@ class GameView(props: GameViewProps): RComponent<GameViewProps, GameViewState>(p
                             fontWeight = FontWeight.bold
                             margin = "0"
                         }
-                        +"${props.user.lastName} ${props.user.firstName}"
+                        +"${user.lastName} ${user.firstName}"
                     }
                     if (props.user.id == state.info.session.hostId &&
                         state.info.session.currentState == SessionState.LOBBY &&
