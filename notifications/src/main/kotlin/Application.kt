@@ -9,11 +9,12 @@ import io.ktor.http.*
 import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.runBlocking
 import ru.tinkoff.sanata.shared_models.model.ChangeNotification
+import java.time.LocalDateTime
 
-suspend fun startTicker(config: AppConfig, client: HttpClient) {
+fun startTicker(config: AppConfig, client: HttpClient) {
     val ticker = ticker(config.ticker.delay)
-    for (tick in ticker) {
-        runBlocking{
+    runBlocking {
+        for (tick in ticker) {
             val response =
                 client.get<io.ktor.client.statement.HttpResponse>(config.server.url + config.server.notificationRoute) {
                     method = HttpMethod.Get
@@ -21,27 +22,21 @@ suspend fun startTicker(config: AppConfig, client: HttpClient) {
                 }
             when (response.status) {
                 HttpStatusCode.OK -> {
-                    val changeNotifications = response.receive<List<ChangeNotification>>()
-                    println(changeNotifications)
-                    runBlocking{
-                        val telegramResponse = client.post<io.ktor.client.statement.HttpResponse>(config.telegram.url + config.telegram.notificationRoute){
-                            method = HttpMethod.Post
-                            contentType(ContentType.Application.Json)
-                            body = changeNotifications
-                        }
-                        when(telegramResponse.status){
-                            HttpStatusCode.OK -> println("OK")
-                            else -> null
-                        }
+                    client.post<io.ktor.client.statement.HttpResponse>(config.telegram.url + config.telegram.notificationRoute) {
+                        method = HttpMethod.Post
+                        contentType(ContentType.Application.Json)
+                        body = response.receive<List<ChangeNotification>>()
                     }
                 }
-                else -> null
+                else -> {
+                }
             }
         }
     }
 }
 
-suspend fun main() {
+
+fun main() {
     val config = ConfigFactory.load().extract<AppConfig>()
     val client = HttpClient(CIO) {
         install(JsonFeature)
