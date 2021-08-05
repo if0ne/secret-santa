@@ -14,4 +14,8 @@ class TgButtons {
     fun getAdditionalGiftButton(userId: Int, sessionId: Int) = InlineKeyboardMarkup.createSingleRowKeyboard(
         InlineKeyboardButton.CallbackData("Добавить подарок", "addGift $userId $sessionId")
     )
+
+    fun getSessionAfterAddGiftButton(userId: Int, sessionId: Int) = InlineKeyboardMarkup.createSingleRowKeyboard(
+        InlineKeyboardButton.CallbackData("Информация о сессии", "userSessionInfo $userId $sessionId")
+    )
 }

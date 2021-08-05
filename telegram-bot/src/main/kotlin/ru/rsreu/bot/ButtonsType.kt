@@ -27,9 +27,14 @@ enum class ButtonsType {
     },
     SESSION_CREATING_BUTTONS {
         override fun getButtons() = InlineKeyboardMarkup.createSingleRowKeyboard(
-            InlineKeyboardButton.CallbackData("Создать", "confirmCreating"),
-            InlineKeyboardButton.CallbackData("Изменить", "changeCreating"),
+            InlineKeyboardButton.CallbackData("Подтвердить", "confirmCreating"),
             InlineKeyboardButton.CallbackData("Отмена", "cancelCreating")
+        )
+    },
+    ADDITION_GIFT_BUTTONS {
+        override fun getButtons() = InlineKeyboardMarkup.createSingleRowKeyboard(
+        InlineKeyboardButton.CallbackData("Добавить", "confirmAddition"),
+        InlineKeyboardButton.CallbackData("Отмена", "cancelAddition")
         )
     };
 

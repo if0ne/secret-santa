@@ -130,7 +130,11 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                             body = LeaveRequest(userId, sessionId)
                         }
                     when (response.status) {
-                        HttpStatusCode.OK -> telegramBotController.sendMessageAboutSuccessLeave(bot, callbackQuery.from.id, sessionId)
+                        HttpStatusCode.OK -> telegramBotController.sendMessageAboutSuccessLeave(
+                            bot,
+                            callbackQuery.from.id,
+                            sessionId
+                        )
                     }
                 }
             }
@@ -152,7 +156,7 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                 }
             }
 
-            callbackQuery("addGift"){
+            callbackQuery("addGift") {
                 val userId = callbackQuery.data.split(" ")[1].toInt()
                 val sessionId = callbackQuery.data.split(" ")[2].toInt()
                 telegramBotController.startCreatingGift(bot, callbackQuery.from.id, userId, sessionId)
@@ -173,7 +177,7 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                     }
                     when (response.status) {
                         HttpStatusCode.Created -> {
-                            telegramBotController.successCreateSession(bot, id, callbackQuery)
+                            telegramBotController.successCreateSession(bot, callbackQuery)
                         }
                         else -> {
                         }
@@ -183,6 +187,35 @@ class SantaBot(config: AppConfig, client: HttpClient) {
 
             callbackQuery("cancelCreating") {
                 telegramBotController.cancelSessionCreating(bot, callbackQuery)
+            }
+
+            callbackQuery("confirmAddition") {
+                val id = callbackQuery.from.id
+                val createGiftRequest = telegramBotController.getAddingGiftRequest(id)
+                runBlocking {
+                    val response = client.post<HttpResponse>(config.server.url + config.server.addGiftRoute) {
+                        method = HttpMethod.Post
+                        contentType(ContentType.Application.Json)
+                        body = createGiftRequest
+                    }
+                    when (response.status) {
+                        HttpStatusCode.Created -> {
+                            telegramBotController.successAddGift(
+                                bot,
+                                callbackQuery,
+                                response.receive(),
+                                createGiftRequest.userId,
+                                createGiftRequest.sessionId
+                            )
+                        }
+                        else -> {
+                        }
+                    }
+                }
+            }
+
+            callbackQuery("cancelAddition") {
+                telegramBotController.cancelAdditionGift(bot, callbackQuery)
             }
 
             text {
