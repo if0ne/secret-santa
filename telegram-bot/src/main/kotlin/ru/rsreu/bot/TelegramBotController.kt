@@ -4,22 +4,27 @@ import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.entities.CallbackQuery
 import ru.tinkoff.sanata.shared_models.model.Gift
 import ru.tinkoff.sanata.shared_models.model.Session
+import ru.tinkoff.sanata.shared_models.model.SessionState
 import ru.tinkoff.sanata.shared_models.model.User
 import ru.tinkoff.sanata.shared_models.request.CreateGiftRequest
 import ru.tinkoff.sanata.shared_models.request.CreateSessionRequest
+import ru.tinkoff.sanata.shared_models.request.JoinRequest
 import ru.tinkoff.sanata.shared_models.response.UserInfoAboutSessionResponse
 import java.time.LocalDateTime
 import java.time.Month
+import java.util.*
 
 class TelegramBotController {
     private val buttons = TgButtons()
     private val sessionCreatingList = mutableListOf<SessionCreating>()
     private val additionGiftList = mutableListOf<AdditionGift>()
+    private val joinSessionList = mutableListOf<JoinSession>()
 
 
     fun enterText(bot: Bot, id: Long, text: String) {
         enterCreatingSession(bot, id, text)
         enterAdditionGift(bot, id, text)
+        enterJoinSession(bot, id, text)
     }
 
     private fun enterCreatingSession(bot: Bot, id: Long, text: String) {
@@ -34,6 +39,16 @@ class TelegramBotController {
             } else {
                 creatingProcess(bot, id, text)
             }
+        }
+    }
+
+    fun startCreatingSession(bot: Bot, id: Long) {
+        if (sessionCreatingList.find { it.telegramId == id } == null) {
+            sessionCreatingList.add(SessionCreating(id, SessionCreatingState.ENTER_DESCRIPTION))
+            bot.sendMsg(
+                id,
+                "Вы начала процесс создания сессии, чтобы закончить напишите \"отмена\". Введите описание сессии"
+            )
         }
     }
 
@@ -78,15 +93,6 @@ class TelegramBotController {
         )
     }
 
-    fun startCreatingSession(bot: Bot, id: Long) {
-        if (sessionCreatingList.find { it.telegramId == id } == null) {
-            sessionCreatingList.add(SessionCreating(id, SessionCreatingState.ENTER_DESCRIPTION))
-            bot.sendMsg(
-                id,
-                "Вы начала процесс создания сессии, чтобы закончить напишите \"отмена\". Введите описание сессии"
-            )
-        }
-    }
 
     fun startCreatingGift(bot: Bot, id: Long, userId: Int, sessionId: Int) {
         if (additionGiftList.find { it.telegramId == id } == null) {
@@ -105,7 +111,7 @@ class TelegramBotController {
                 additionGiftList.remove(additionGift)
                 bot.sendMsg(
                     id,
-                    "Процесс добавления поадрка отменен"
+                    "Процесс добавления подарка отменен"
                 )
             } else {
                 additionGiftProcess(bot, id, text)
@@ -159,6 +165,54 @@ class TelegramBotController {
         bot.sendMsg(
             id,
             "Создание подарка отменено"
+        )
+    }
+
+    private fun enterJoinSession(bot: Bot, id: Long, text: String) {
+        val joinSession = joinSessionList.find { it.telegramId == id }
+        if (joinSession != null) {
+            if (text == "отмена") {
+                joinSessionList.remove(joinSession)
+                bot.sendMsg(
+                    id,
+                    "Процесс входа в сессию отменен"
+                )
+            } else {
+                joinProcess(bot, id, text)
+            }
+        }
+    }
+
+    fun startJoinOnSession(bot: Bot, id: Long) {
+        if (joinSessionList.find { it.telegramId == id } == null) {
+            joinSessionList.add(JoinSession(id))
+            bot.sendMsg(
+                id,
+                "Чтобы войти в сессию введите её GUID"
+            )
+        }
+    }
+
+    private fun joinProcess(bot: Bot, id: Long, text: String) {
+        val joinSession = joinSessionList.find { it.telegramId == id }!!
+        if (UUID.fromString(text) != null) {
+            joinSession.sessionGuid = text
+        }
+        bot.sendMsg(
+            id,
+            "Вы уверены что хотите зайти в сессию?",
+            buttons.getButtons(ButtonsType.JOIN_SESSION_BUTTONS)
+        )
+    }
+
+    fun cancelJoinOnSession(bot: Bot, callbackQuery: CallbackQuery) {
+        bot.deleteLastMessage(callbackQuery)
+        val id = callbackQuery.from.id
+        val joinSession = joinSessionList.find { it.telegramId == id }
+        joinSessionList.remove(joinSession)
+        bot.sendMsg(
+            id,
+            "Вход в сессию отменен"
         )
     }
 
@@ -231,7 +285,7 @@ class TelegramBotController {
     fun notifyAboutStartSession(bot: Bot, user: User, session: Session) = bot.sendMsg(
         user.telegramId!!,
         "${user.firstName}, выбор подарков в сессии ${session.id} закончился",
-        buttons.getUserInfoAboutSessionButton(user.id, session.id)
+        buttons.getUserInfoAboutSessionButtons(user.id, session.id)
     )
 
     fun notifyAboutEndSession(bot: Bot, user: User, session: Session) = bot.sendMsg(
@@ -251,7 +305,7 @@ class TelegramBotController {
             bot.sendMsg(
                 id,
                 formMainSessionInfo(it),
-                buttons.getUserInfoAboutSessionButton(user.id, it.id)
+                buttons.getUserInfoAboutSessionButtons(user.id, it.id)
             )
         }
     }
@@ -262,15 +316,17 @@ class TelegramBotController {
         val usersString = formUsersString(info.users)
         val giftsString = formUserGifts(info.userGifts, "Список выбранных подарков:\n", "Вы не выбрали ни 1 подарка\n")
         val giftGivingInfo = formGiftGivingInfo(info.giftReceivingUser, info.receivingUserGifts)
+        val sessionButtons =
+            if (session.currentState == SessionState.LOBBY) buttons.getSessionButtons(user.id, session.id) else null
         bot.sendMsg(
             info.user.telegramId!!,
             formMainSessionInfo(session) + usersString + giftsString + giftGivingInfo,
-            buttons.getAdditionalGiftButton(user.id, session.id)
+            sessionButtons
         )
     }
 
     fun sendMessageAboutSuccessLeave(bot: Bot, id: Long, sessionId: Int) =
-        bot.sendMsg(id, "Вы успешно покинулу сессию $sessionId")
+        bot.sendMsg(id, "Вы успешно покинули сессию $sessionId")
 
     private fun formMainSessionInfo(session: Session): String = "Сессия ${session.id}" +
             formDescription(session.description) +

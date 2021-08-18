@@ -139,6 +139,18 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                 }
             }
 
+            callbackQuery("join") {
+                telegramBotController.startJoinOnSession(bot, callbackQuery.from.id)
+            }
+
+            callbackQuery("confirmJoin") {
+
+            }
+
+            callbackQuery("cancelJoin") {
+                telegramBotController.cancelJoinOnSession(bot, callbackQuery)
+            }
+
             callbackQuery("userSessionInfo") {
                 val userId = callbackQuery.data.split(" ")[1].toInt()
                 val sessionId = callbackQuery.data.split(" ")[2].toInt()
@@ -213,11 +225,9 @@ class SantaBot(config: AppConfig, client: HttpClient) {
                     }
                 }
             }
-
             callbackQuery("cancelAddition") {
                 telegramBotController.cancelAdditionGift(bot, callbackQuery)
             }
-
             text {
                 val text = message.text!!
                 if (!text.startsWith("/")) {

@@ -16,7 +16,8 @@ enum class ButtonsType {
                     InlineKeyboardButton.CallbackData("Информация об аккаунте", "userInfo")
                 ),
                 listOf(InlineKeyboardButton.CallbackData("Список моих сессий", "sessions")),
-                listOf(InlineKeyboardButton.CallbackData("Создать сессию", "create"))
+                listOf(InlineKeyboardButton.CallbackData("Создать сессию", "create")),
+                listOf(InlineKeyboardButton.CallbackData("Войти в сессию", "join"))
             )
         )
     },
@@ -33,10 +34,17 @@ enum class ButtonsType {
     },
     ADDITION_GIFT_BUTTONS {
         override fun getButtons() = InlineKeyboardMarkup.createSingleRowKeyboard(
-        InlineKeyboardButton.CallbackData("Добавить", "confirmAddition"),
-        InlineKeyboardButton.CallbackData("Отмена", "cancelAddition")
+            InlineKeyboardButton.CallbackData("Добавить", "confirmAddition"),
+            InlineKeyboardButton.CallbackData("Отмена", "cancelAddition")
+        )
+    },
+    JOIN_SESSION_BUTTONS {
+        override fun getButtons() = InlineKeyboardMarkup.createSingleRowKeyboard(
+        InlineKeyboardButton.CallbackData("Войти", "confirmJoin"),
+        InlineKeyboardButton.CallbackData("Отмена", "cancelJoin")
         )
     };
+
 
     abstract fun getButtons(): InlineKeyboardMarkup
 }
